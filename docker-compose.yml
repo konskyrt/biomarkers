@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/venv  # Prevents overwriting installed dependencies
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend  # Ensures backend starts before frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Prevents overwriting installed dependencies
+    restart: always
