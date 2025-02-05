@@ -1,4 +1,4 @@
-# Construction BIM Data Dashboard
+# BIM Data Dashboard
 
 > A full-stack web application for analyzing Building Information Modeling (BIM) data.
 
