@@ -50,7 +50,7 @@ construction-bim-data/
 
 2. **Build Docker Image**
    ```bash
-   docker build -t construction-bim-data .
+   docker build -t bim-data-dashboard .
    ```
 
 3. **Run Container**
