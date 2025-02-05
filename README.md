@@ -10,6 +10,7 @@
 
 | Component | Platform | Access |
 |-----------|----------|---------|
+| Webpage | Docker | `http://localhost:5000` |
 | Webpage | Render | `https://bim-data-dashboard.onrender.com` |
 
 ## 📑 Table of Contents
