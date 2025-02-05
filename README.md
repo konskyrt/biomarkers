@@ -1,70 +1,105 @@
-# Getting Started with Create React App
+# BIM Data Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## **Overview**
+The **BIM Data Dashboard** is a web-based application that visualizes and manages Building Information Modeling (BIM) data. It consists of a **backend** (Python-based) and a **frontend** (React-based), and it is fully containerized using Docker for easy deployment and setup.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## **Getting Started**
+### **1. Prerequisites**
+Ensure you have the following installed on your system:
+- [Docker](https://www.docker.com/products/docker-desktop) (Recommended: Docker Desktop)
+- Git (for cloning the repository)
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### **2. Clone the Repository**
+```bash
+ git clone https://github.com/YOUR_COMPANY/bim_data_dashboard.git
+ cd bim_data_dashboard
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+### **3. Run the Application with Docker**
+Use Docker Compose to start the entire application (both backend and frontend):
+```bash
+docker-compose up --build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This will:
+✅ Build the **backend** and **frontend** containers
+✅ Start the **BIM data processing API** and the **web dashboard**
 
-### `npm run build`
+Once running, you can access the dashboard at:
+- **Frontend:** [http://localhost:3000](http://localhost:3000)
+- **Backend API:** [http://localhost:5000](http://localhost:5000)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+To stop the application:
+```bash
+docker-compose down
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### **4. Running Without Docker (Optional for Development)**
+If you prefer to run the application without Docker:
+#### **Backend (Python Flask)**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+#### **Frontend (React.js)**
+```bash
+cd frontend
+npm install
+npm start
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## **Project Structure**
+```
+├── backend/       # Python-based API (Flask/Django)
+│   ├── app.py     # Main backend application file
+│   ├── Dockerfile # Docker configuration for backend
+│   ├── requirements.txt # Dependencies
+│   └── ...
+│
+├── frontend/      # React.js frontend application
+│   ├── src/       # Frontend source code
+│   ├── Dockerfile # Docker configuration for frontend
+│   ├── package.json # Frontend dependencies
+│   └── ...
+│
+├── docker-compose.yml  # Docker Compose file to run both services
+├── README.md       # Project documentation (this file)
+└── .gitignore      # Git ignored files
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## **Troubleshooting**
+### **Docker Issues**
+1. **Docker Not Running?**
+   - Ensure Docker is installed and running: 
+     ```bash
+     docker info
+     ```
+2. **Port Already in Use?**
+   - Stop any service running on ports `3000` or `5000`:
+     ```bash
+     kill -9 $(lsof -t -i:3000 -i:5000)
+     ```
+3. **Docker Build Failing?**
+   - Try clearing cached images:
+     ```bash
+     docker system prune -a
+     ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
