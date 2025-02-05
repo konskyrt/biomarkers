@@ -93,4 +93,4 @@ docker build --no-cache -t construction-bim-data .
 </details>
 
 ---
-*Made with ❤️ by the BIM Data Team*
+*Made with ❤️ by Konstantinos Kyrtsonis*
