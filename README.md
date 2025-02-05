@@ -55,7 +55,7 @@ construction-bim-data/
 
 3. **Run Container**
    ```bash
-   docker run -p 5000:5000 construction-bim-data
+   docker run -p 5000:5000 bim-data-dashboard
    ```
 
 4. **Access Application**
