@@ -8,6 +8,12 @@
 
 ## 🔑 User Access
 
+The app is deployed on Render and can be accessed through this link:
+
+https://bim-data-dashboard.onrender.com
+
+Alternatively the app has been containerized with docker, below are the instructions:
+
 | Component | Platform | Access |
 |-----------|----------|---------|
 | Webpage | Docker | `http://localhost:5000` |
