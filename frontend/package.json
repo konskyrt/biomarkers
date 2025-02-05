@@ -1,10 +1,11 @@
 {
   "name": "construction-logistics-management",
   "version": "0.1.0",
-  "homepage": "https://amberg-loglay.github.io/bim_data_dashboard",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "chart.js": "^4.4.7",
+    "chartjs-plugin-zoom": "^2.2.0",
     "cra-template": "1.2.0",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
@@ -19,7 +20,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"  
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
