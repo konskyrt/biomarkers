@@ -8,7 +8,6 @@ RUN npm run build
 # Add this line after `RUN npm run build` in the frontend stage
 RUN ls -la /app/frontend/build  # Verify build dir exists
 
-
 # Stage 2: Build Flask backend
 FROM python:3.10-slim
 WORKDIR /app
