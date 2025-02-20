@@ -5,6 +5,7 @@ import MetricsSummary from './MetricsSummary';
 import AggregatedTable from './AggregatedTable';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
+import QuantityAnalysis from './QuantityAnalysis';
 import * as XLSX from 'xlsx';
 import logo from './ambergloglay.jpg'; // Adjust the path accordingly
 
@@ -485,6 +486,12 @@ const App = () => {
             </div>
           </div>
         );
+      
+      case 'Quantity Analysis':
+        return (
+            <QuantityAnalysis />
+
+        );
 
       default:
         return (
@@ -493,6 +500,9 @@ const App = () => {
             <p>Manage BIM data, generate schedules, Intergrated.</p>
           </div>
         );
+
+      
+        
     }
   };
 
