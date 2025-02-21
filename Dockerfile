@@ -1,24 +1,20 @@
-# Stage 1: Build React frontend
-FROM node:18 AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ . 
-RUN npm run build
-# Add this line after `RUN npm run build` in the frontend stage
-RUN ls -la /app/frontend/build  # Verify build dir exists
+FROM node:16-alpine
 
-# Stage 2: Build Flask backend
-FROM python:3.10-slim
+# Set working directory
 WORKDIR /app
 
-# Copy backend files
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ ./backend
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-# Copy React build files from frontend stage
-COPY --from=frontend-build /app/frontend/build ./backend/static
+# Install dependencies
+RUN npm install
 
-EXPOSE 5000
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "backend.app:app"]
+# Copy the rest of your code
+COPY . .
+
+# Build the project
+RUN npm run build
+
+# Serve the build folder using a simple static server
+RUN npm install -g serve
+CMD ["serve", "-s", "build", "-l", "3000"]
