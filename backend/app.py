@@ -5,6 +5,7 @@ import ifcopenshell
 import ifcopenshell.geom
 import pandas as pd
 from ifcopenshell.util.shape import get_volume, get_area, get_top_elevation, get_bottom_elevation
+import logging
 
 # Ensure the current directory is in sys.path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -18,6 +19,15 @@ app = Flask(__name__, static_folder=static_folder, static_url_path='')
 UPLOAD_FOLDER = os.path.join(current_dir, 'data')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Configure logging to stdout
+app.logger.handlers = []  # Remove default handlers
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+stream_handler.setFormatter(formatter)
+app.logger.addHandler(stream_handler)
+app.logger.setLevel(logging.DEBUG)
 
 # Serve the React frontend from the static folder
 @app.route('/')
@@ -34,6 +44,7 @@ def upload_file():
         return jsonify({"error": "No file selected"}), 400
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(file_path)
+    app.logger.debug("File uploaded successfully: %s", file_path)
     return jsonify({"message": "File uploaded successfully!", "filePath": file_path}), 200
 
 def get_floor_and_building(element):
@@ -60,21 +71,21 @@ def get_floor_and_building(element):
 def flatten_element(element):
     """
     Extracts attributes from an IFC element.
-    Returns a dictionary with keys:
-      - "Object Name": element name.
-      - "IFC-Typ": IFC type.
-      - "Geschoss": Floor (from spatial structure).
-      - "Gebäude": Building (from spatial structure).
-      - "Task Name": (left blank for now).
-      - "3D-Modell": IFC model name.
-      - "Volumen (m³)", "Surface Area (m²)", "Top Elevation (m)", "Bottom Elevation (m)".
-      - Other properties from property sets.
+    Returns a dictionary with keys such as:
+      - "Object Name"
+      - "IFC-Typ"
+      - "Geschoss" (Floor)
+      - "Gebäude" (Building)
+      - "Task Name"
+      - "3D-Modell"
+      - "Volumen (m³)", "Surface Area (m²)", "Top Elevation (m)", "Bottom Elevation (m)"
+      - And properties from property sets.
     """
     data = {}
     info = element.get_info()
     for key, value in info.items():
         data[key] = str(value)
-    # Extract property sets without hardcoding attribute names.
+    # Extract property sets
     if hasattr(element, "IsDefinedBy"):
         for rel in element.IsDefinedBy:
             if rel.is_a("IfcRelDefinesByProperties"):
@@ -91,10 +102,9 @@ def flatten_element(element):
     floor_name, building_name = get_floor_and_building(element)
     data["Geschoss"] = floor_name if floor_name else ""
     data["Gebäude"] = building_name if building_name else ""
-    # Map basic attributes to desired columns.
     data["Object Name"] = str(info.get("Name", ""))
     data["IFC-Typ"] = element.is_a()
-    data["Task Name"] = ""  # Not typically available in IFC.
+    data["Task Name"] = ""  # Left blank for now
     # Compute geometry values.
     try:
         settings = ifcopenshell.geom.settings()
@@ -117,54 +127,36 @@ def flatten_element(element):
 
 @app.route('/process-ifc', methods=['POST'])
 def process_ifc_file():
-    """
-    Processes an uploaded IFC file and returns BIM data in a JSON list,
-    with columns matching your frontend:
-    Geschoss, Object Name, Gebäude, Task Name, IFC-Typ, 3D-Modell,
-    Volumen (m³), Surface Area (m²), Top Elevation (m), Bottom Elevation (m), etc.
-    """
     data = request.get_json()
     file_path = data.get("filePath")
     if not file_path or not os.path.exists(file_path):
         return jsonify({"error": "File not found"}), 400
 
     ifc_file = ifcopenshell.open(file_path)
-
-    # Extract IFC model name from header, if available.
     model_name = "Unknown"
     if hasattr(ifc_file.header, "file_name"):
         fn = ifc_file.header.file_name
         if isinstance(fn, (list, tuple)) and len(fn) > 0:
             model_name = fn[0]
 
-    # Retrieve all IFC products (filter by IfcProduct; adjust as needed)
     elements = ifc_file.by_type("IfcProduct")
     data_list = []
     for element in elements:
         flat = flatten_element(element)
-        flat["3D-Modell"] = model_name  # Add the model name for each element.
+        flat["3D-Modell"] = model_name
         data_list.append(flat)
-
-    # Optionally, export to Excel if needed:
-    # df = pd.DataFrame(data_list)
-    # df.to_excel("output.xlsx", index=False)
 
     return jsonify(data_list), 200
 
-# Endpoint to convert the IFC file to a xeokit-compatible format (e.g. XKT or glTF + JSON)
 @app.route('/convert-ifc', methods=['POST'])
 def convert_ifc():
     data = request.get_json()
     file_path = data.get("filePath")
     if not file_path or not os.path.exists(file_path):
         return jsonify({"error": "File not found"}), 400
-
-    # Implement your IFC-to-XKT/glTF conversion here.
-    # This code is a placeholder—replace with your actual conversion logic.
     converted_model_url = "https://your.cdn.com/path/to/converted_model.xkt"
     return jsonify({"convertedModelUrl": converted_model_url}), 200
 
-# Fallback: serve React frontend for undefined routes.
 @app.errorhandler(404)
 def not_found(e):
     return send_from_directory(app.static_folder, 'index.html')
