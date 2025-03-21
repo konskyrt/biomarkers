@@ -6,6 +6,7 @@ import AggregatedTable from './AggregatedTable';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
 import QuantityAnalysis from './QuantityAnalysis';
+import BIM2LOG from './BIM2LOG';
 import * as XLSX from 'xlsx';
 import logo from './ambergloglay.jpg'; // Adjust the path accordingly
 
@@ -351,147 +352,9 @@ const App = () => {
             />
           </div>
         );
-
-      case 'Construction Feature Predictor':
-        return (
-          <div className="construction-feature-predictor">
-            <h2>Construction Feature Predictor</h2>
-            <p>Predict construction features using advanced analytics.</p>
-            <form>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Phase of Project to Predict Volumes:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Disciplines Included:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Number of Buildings:
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Type of Buildings:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Type of Construction:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Number of Floors:
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Building Area (m²):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Site Area (m²):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Occupied Area (m²):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Area per Floor (m²):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Volume per Floor (m³):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Total Floor Area (m²):
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Foundation Type:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Construction Start:
-                </label>
-                <input type="date" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Construction End:
-                </label>
-                <input type="date" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Consolidation Center:
-                </label>
-                <input type="text" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Number of Workers:
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '1.2rem', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-                  Number of Building Entrances:
-                </label>
-                <input type="number" style={{ fontSize: '1rem', width: '100%' }} />
-              </div>
-              <button type="submit" style={{ fontSize: '1rem', padding: '10px 20px' }}>Predict</button>
-            </form>
-          </div>
-        );
-
-      case 'Schedule Generator':
-        return (
-          <div className="schedule-generation">
-            <h2>Generate Schedule</h2>
-            <p>Below is a sample Gantt chart to visualize your schedule:</p>
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <img
-                src="/gantt.jpg"
-                alt="Gantt Chart"
-                style={{ width: '80%', height: 'auto', border: '1px solid #dee2e6', borderRadius: '8px' }}
-                onError={(e) => { e.target.onerror = null; e.target.src = 'fallback-image.jpg'; }}
-              />
-            </div>
-          </div>
-        );
       
-      case 'Quantity Analysis':
-        return (
-            <QuantityAnalysis />
-
-        );
+      case 'BIM2LOG': // NEW CASE
+        return <BIM2LOG />;
 
       default:
         return (
@@ -512,7 +375,7 @@ const App = () => {
         <div className="landing-page">
           <header className="header">
             <img src={logo} alt="Amberg Loglay" className="header-logo" />
-            <h1>Classifier Amberg Loglay</h1>
+            <h1>BIM Schedule Functionalities</h1>
             <p>Manage BIM data, Generate schedules, Intergrated.</p>
             <button onClick={() => setCurrentPage('BIM Data Analysis')}>Get Started</button>
           </header>
