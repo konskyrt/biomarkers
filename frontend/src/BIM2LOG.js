@@ -56,52 +56,76 @@ const BIM2LOG = () => {
 
   // When the user clicks Connect, we validate file selection and show detail-level options.
   const handleConnect = () => {
-    if (!timelineFile || !elementsFile) {
-      console.log("Files not selected", { timelineFile, elementsFile });
+    // First check if we need to show detail selection
+    if (!selectedDetailLevel) {
+      setShowDetailSelection(true);
       return;
     }
-    // Clear previous results and show the detail selection
+
+    // Proceed with processing if detail level is selected
+    if (!timelineFile || !elementsFile) return;
+    
+    setIsProcessing(true);
     setFinalResults(null);
     setProgressMessages([]);
-    setSessionId(null);
-    setShowDetailSelection(true);
-  };
 
-  // When the user selects a detail level (e.g., "Medium"), start processing.
-  const startProcessing = (level) => {
-    setSelectedDetailLevel(level);
-    setIsProcessing(true);
-    setShowDetailSelection(false);
-
-    // Create FormData and append files and the chosen detail level.
+    // Rest of your existing handleConnect logic...
     const formData = new FormData();
     formData.append("timeline", timelineFile);
     formData.append("elements", elementsFile);
-    formData.append("detail_level", level);
-
-    fetch("/api/bim2log/process", {
-      method: "POST",
+    formData.append("detail_level", selectedDetailLevel); // Add this line
+  
+    fetch('/api/bim2log/process', {
+      method: 'POST',
       body: formData,
     })
       .then((response) => {
-        console.log("Response status:", response.status);
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        function readStream() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              setIsProcessing(false);
+              return;
+            }
+            const text = decoder.decode(value);
+            const lines = text.split('\n');
+            lines.forEach((line) => {
+              const trimmed = line.trim();
+              if (trimmed) {
+                // Remove the "data: " prefix if present.
+                const jsonStr = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
+                try {
+                  const data = JSON.parse(jsonStr);
+                  if (data.type === 'status') {
+                    setProgressMessages((prev) => [
+                      ...prev,
+                      `${new Date().toLocaleTimeString()}: ${data.message}`,
+                    ]);
+                  } else if (data.type === 'result') {
+                    setFinalResults(data.data);
+                  } else if (data.type === 'error') {
+                    setProgressMessages((prev) => [
+                      ...prev,
+                      `${new Date().toLocaleTimeString()}: ERROR - ${data.message}`,
+                    ]);
+                    setIsProcessing(false);
+                  }
+                } catch (e) {
+                  console.error("Error parsing stream line", e);
+                }
+              }
+            });
+            readStream();
+          });
         }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Data received from backend:", data);
-        if (data.session_id) {
-          setSessionId(data.session_id);
-        }
-        setFinalResults(data);
+        readStream();
       })
       .catch((error) => {
-        console.error("Error in startProcessing:", error);
-        setProgressMessages((prev) => [...prev, `Error: ${error.message}`]);
-      })
-      .finally(() => {
+        setProgressMessages((prev) => [
+          ...prev,
+          `${new Date().toLocaleTimeString()}: ERROR - ${error.message}`,
+        ]);
         setIsProcessing(false);
       });
   };
@@ -139,21 +163,39 @@ const BIM2LOG = () => {
       {/* Connect Button */}
       {!showDetailSelection && (
         <button
-          onClick={handleConnect}
+          onClick={() => {
+            if (!selectedDetailLevel) {
+              setShowDetailSelection(true);
+            } else {
+              handleConnect();
+            }
+          }}
           disabled={!timelineFile || !elementsFile || isProcessing}
           style={{ padding: "5px 10px" }}
         >
           {isProcessing ? "Processing..." : "Connect"}
         </button>
       )}
-      {/* Detail Level Selection */}
+      
       {showDetailSelection && (
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           <p>Please select the level of detail to connect:</p>
           <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-            <button onClick={() => startProcessing("low")}>Low</button>
-            <button onClick={() => startProcessing("medium")}>Medium</button>
-            <button onClick={() => startProcessing("high")}>High</button>
+            <button onClick={() => {
+              setSelectedDetailLevel('low');
+              setShowDetailSelection(false);
+              handleConnect();
+            }}>Low</button>
+            <button onClick={() => {
+              setSelectedDetailLevel('medium');
+              setShowDetailSelection(false);
+              handleConnect();
+            }}>Medium</button>
+            <button onClick={() => {
+              setSelectedDetailLevel('high');
+              setShowDetailSelection(false);
+              handleConnect();
+            }}>High</button>
           </div>
         </div>
       )}
