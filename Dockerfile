@@ -5,19 +5,22 @@ COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ . 
 RUN npm run build
-RUN ls -la /app/frontend/build  # Verify build directory exists
+# Optional: List the build folder for verification
+RUN ls -la /app/frontend/build
 
 # Stage 2: Build Flask backend
 FROM python:3.10-slim
 WORKDIR /app
 
-# Copy backend files
+# Install Python dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the backend code into /app/backend
 COPY backend/ ./backend
 
-# Copy React build files from frontend stage
+# Copy the React build from the frontend stage into the backend static folder
 COPY --from=frontend-build /app/frontend/build ./backend/static
 
 EXPOSE 5000
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "backend.app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "backend.main:app"]

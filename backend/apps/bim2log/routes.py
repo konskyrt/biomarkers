@@ -19,6 +19,10 @@ bim2log_bp = Blueprint('bim2log', __name__)
 
 @bim2log_bp.route('/process', methods=['POST'])
 def process_files():
+    # Reject non-SSE clients first
+    if 'text/event-stream' not in request.accept_mimetypes:
+        return jsonify(error="This endpoint only accepts SSE clients"), 406
+
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
