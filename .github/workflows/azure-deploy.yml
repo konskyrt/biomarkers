@@ -8,6 +8,8 @@ on:
 
 env:
   AZURE_CONTAINER_REGISTRY: bim2log.azurecr.io
+  ACR_USERNAME: BIM2LOG
+  ACR_PASSWORD: iMF1nOHq5l8ey6Wt23IsVw4nBNxDwWbCv4JWRMOc40+ACRCJ+v3h
   IMAGE_NAME: bim-data-dashboard
 
 jobs:
@@ -24,16 +26,16 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: ${{ env.AZURE_CONTAINER_REGISTRY }}
-        username: ${{ secrets.ACR_USERNAME }}
-        password: ${{ secrets.ACR_PASSWORD }}
+        username: ${{ env.ACR_USERNAME }}
+        password: ${{ env.ACR_PASSWORD }}
     
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
-        context: ./construction-bim-data/bim_data_dashboard
+        context: .
         push: true
         tags: |
           ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         cache-from: type=gha
-        cache-to: type=gha,mode=max 
+        cache-to: type=gha,mode=max
