@@ -129,6 +129,7 @@ def process_ifc_to_dataframe(ifc_path: str) -> pd.DataFrame:
                 print(f"Type Value Exception for IfcGlobalID {x.GlobalId}")
         return type_attr_dicts
 
+
     # Headers (same as original, excluding "Additional Attributes" for later expansion)
     headers = [
         "File Name", "ObjectID", "GlobalId", "type", "Name", "Description", "ObjectType",
