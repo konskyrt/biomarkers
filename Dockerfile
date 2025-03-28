@@ -23,4 +23,4 @@ COPY backend/ ./backend
 COPY --from=frontend-build /app/frontend/build ./backend/static
 
 EXPOSE 5000
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "backend.main:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "--timeout", "250", "backend.main:app"]

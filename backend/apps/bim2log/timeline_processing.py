@@ -33,6 +33,9 @@ def process_timeline(base_timeline_df, df_tasks):
     if 'HasElements' not in df_tasks.columns:
         raise ValueError(f"Column 'HasElements' not found in df_tasks. Available columns: {df_tasks.columns.tolist()}")
 
+    print("Processed Timeline:")
+    df_tasks.head()
+
     def generate_dates(row, current_start_dates):
         if row['Duration_Per_Floor'] > 0:
             task = row['Simplified_Task']
