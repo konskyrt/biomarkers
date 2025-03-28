@@ -12,6 +12,10 @@ RUN ls -la /app/frontend/build
 FROM python:3.10-slim
 WORKDIR /app
 
+# Create a dedicated temp directory with proper permissions
+RUN mkdir -p /app/temp && chmod 777 /app/temp
+ENV TMPDIR=/app/temp
+
 # Install Python dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

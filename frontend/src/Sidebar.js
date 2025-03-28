@@ -7,7 +7,7 @@ const Sidebar = ({ currentPage, setCurrentPage, logo }) => {
         <img src={logo} alt="Amberg Loglay" className="logo" />
       </div>
       <ul>
-        <li onClick={() => setCurrentPage('BIM Data Analysis')}>BIM Data Analysis</li>
+        <li onClick={() => setCurrentPage('BIM Data Analysis')}>Classifier</li>
         <li onClick={() => setCurrentPage('BIM2LOG')}>BIM2LOG</li> 
         <li onClick={() => setCurrentPage('BIMChat')}>BIMChat</li>
       </ul>
