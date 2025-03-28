@@ -73,11 +73,18 @@ const BIM2LOG = () => {
     const formData = new FormData();
     formData.append("timeline", timelineFile);
     formData.append("elements", elementsFile);
-    formData.append("detail_level", selectedDetailLevel); // Add this line
+    formData.append("detail_level", selectedDetailLevel);
   
+    // Initialize variables for chunked response handling
+    let chunkedResponse = '';
+    let isChunkedResponseMode = false;
+    
     fetch('/api/bim2log/process', {
       method: 'POST',
       body: formData,
+      headers: {
+        'Accept': 'text/event-stream'
+      }
     })
       .then((response) => {
         const reader = response.body.getReader();
@@ -85,25 +92,115 @@ const BIM2LOG = () => {
         function readStream() {
           reader.read().then(({ done, value }) => {
             if (done) {
+              console.log("Stream completed");
               setIsProcessing(false);
               return;
             }
             const text = decoder.decode(value);
-            const lines = text.split('\n');
+            console.log(`Received data chunk of length: ${text.length}`);
+            
+            // Split by the SSE data delimiter
+            const lines = text.split('\n\n');
+            console.log(`Parsed into ${lines.length} SSE events`);
+            
             lines.forEach((line) => {
               const trimmed = line.trim();
               if (trimmed) {
                 // Remove the "data: " prefix if present.
-                const jsonStr = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
+                const jsonStrRaw = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
+                console.log(`Processing message starting with: ${jsonStrRaw.substring(0, 50)}...`);
+                
                 try {
-                  const data = JSON.parse(jsonStr);
+                  // Handle chunked responses
+                  if (isChunkedResponseMode) {
+                    // If this is a control message (JSON) check if it's the end marker
+                    if (jsonStrRaw.startsWith('{')) {
+                      try {
+                        const controlData = JSON.parse(jsonStrRaw);
+                        console.log(`Received control message in chunked mode: ${controlData.type}`);
+                        if (controlData.type === 'result_end') {
+                          // End of chunked transfer, process the complete json
+                          console.log(`End of chunked response, total size: ${chunkedResponse.length} bytes`);
+                          try {
+                            const fullData = JSON.parse(chunkedResponse);
+                            console.log("Successfully parsed chunked data");
+                            console.log("Chunked data structure:", JSON.stringify(fullData).substring(0, 200) + "...");
+                            console.log("Has data property:", !!fullData.data);
+                            if (fullData.data) {
+                              console.log("Data properties:", Object.keys(fullData.data));
+                              console.log("Object Summary items:", fullData.data.objectSummary?.length || 0);
+                              console.log("Ending Tasks items:", fullData.data.endingTasks?.length || 0);
+                            }
+                            setFinalResults(fullData.data);
+                            setProgressMessages((prev) => [
+                              ...prev,
+                              `${new Date().toLocaleTimeString()}: Complete data received (${chunkedResponse.length} bytes) - Object Summary: ${fullData.data?.objectSummary?.length || 0} items, Ending Tasks: ${fullData.data?.endingTasks?.length || 0} items`,
+                            ]);
+                            setIsProcessing(false);
+                          } catch (e) {
+                            console.error("Error parsing complete chunked data", e);
+                            setProgressMessages((prev) => [
+                              ...prev,
+                              `${new Date().toLocaleTimeString()}: ERROR - Could not parse chunked data: ${e.message}`,
+                            ]);
+                            setIsProcessing(false);
+                          }
+                          // Reset chunked mode
+                          isChunkedResponseMode = false;
+                          chunkedResponse = '';
+                        }
+                      } catch (e) {
+                        // Not JSON control, treat as chunk data
+                        console.log("Adding to chunked response (tried to parse as control but failed)");
+                        chunkedResponse += jsonStrRaw;
+                      }
+                    } else {
+                      // Add to the accumulated chunks
+                      console.log(`Adding chunk to response, current total size: ${chunkedResponse.length + jsonStrRaw.length} bytes`);
+                      chunkedResponse += jsonStrRaw;
+                    }
+                    return;
+                  }
+                  
+                  // Normal (non-chunked) message handling
+                  const data = JSON.parse(jsonStrRaw);
+                  console.log(`Received message type: ${data.type}`);
+                  
                   if (data.type === 'status') {
                     setProgressMessages((prev) => [
                       ...prev,
                       `${new Date().toLocaleTimeString()}: ${data.message}`,
                     ]);
                   } else if (data.type === 'result') {
+                    console.log("Received complete result data");
+                    console.log("Data structure:", JSON.stringify(data).substring(0, 200) + "...");
+                    console.log("Has data property:", !!data.data);
+                    if (data.data) {
+                      console.log("Data properties:", Object.keys(data.data));
+                      console.log("Object Summary items:", data.data.objectSummary?.length || 0);
+                      console.log("Ending Tasks items:", data.data.endingTasks?.length || 0);
+                    }
                     setFinalResults(data.data);
+                    setProgressMessages((prev) => [
+                      ...prev,
+                      `${new Date().toLocaleTimeString()}: Results received successfully - Object Summary: ${data.data?.objectSummary?.length || 0} items, Ending Tasks: ${data.data?.endingTasks?.length || 0} items`,
+                    ]);
+                    setIsProcessing(false);
+                  } else if (data.type === 'result_start') {
+                    console.log("Starting chunked response mode");
+                    setProgressMessages((prev) => [
+                      ...prev,
+                      `${new Date().toLocaleTimeString()}: ${data.message}`,
+                    ]);
+                    // Enter chunked response mode
+                    isChunkedResponseMode = true;
+                    chunkedResponse = '';
+                  } else if (data.type === 'complete') {
+                    setProgressMessages((prev) => [
+                      ...prev,
+                      `${new Date().toLocaleTimeString()}: ${data.message}`,
+                    ]);
+                    setIsProcessing(false);
                   } else if (data.type === 'error') {
                     setProgressMessages((prev) => [
                       ...prev,
@@ -112,11 +209,23 @@ const BIM2LOG = () => {
                     setIsProcessing(false);
                   }
                 } catch (e) {
-                  console.error("Error parsing stream line", e);
+                  console.error("Error parsing stream line", e, jsonStrRaw.substring(0, 100));
+                  if (isChunkedResponseMode) {
+                    // In chunked mode, add raw data
+                    console.log("Adding non-JSON data to chunked response");
+                    chunkedResponse += jsonStrRaw;
+                  }
                 }
               }
             });
             readStream();
+          }).catch(error => {
+            console.error("Error reading from stream:", error);
+            setProgressMessages((prev) => [
+              ...prev,
+              `${new Date().toLocaleTimeString()}: ERROR - Stream reading error: ${error.message}`,
+            ]);
+            setIsProcessing(false);
           });
         }
         readStream();
@@ -234,8 +343,22 @@ const BIM2LOG = () => {
 
       {/* Final Results Display */}
       {finalResults && (
-        <div className="final-results" style={{ marginTop: "20px" }}>
+        <div className="final-results" style={{ 
+          marginTop: "20px",
+          border: "2px solid #4CAF50",
+          padding: "15px",
+          borderRadius: "5px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+        }}>
           <h2>Final Summary</h2>
+          <div style={{ 
+            backgroundColor: "#e8f5e9", 
+            padding: "10px", 
+            marginBottom: "15px",
+            borderRadius: "4px" 
+          }}>
+            <p>Results received successfully! Found {finalResults.objectSummary?.length || 0} object summary records and {finalResults.endingTasks?.length || 0} task records.</p>
+          </div>
           
           <section>
             <h3>Object Summary</h3>

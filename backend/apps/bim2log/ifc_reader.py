@@ -191,14 +191,24 @@ def process_ifc_to_dataframe(ifc_path: str) -> pd.DataFrame:
     # Create initial DataFrame with base data
     df = pd.DataFrame([row for row, _ in data], columns=headers)
 
-    # Expand additional attributes into separate columns
+    # Optimize DataFrame expansion by creating a dictionary for all attributes first,
+    # then creating a dataframe at once instead of adding columns one by one
     all_attrs = [attrs for _, attrs in data]
     extra_columns = sorted(set().union(*[set(attrs.keys()) for attrs in all_attrs]))
+    
+    # Create a dictionary with all the extra columns data
+    extra_data = {}
     for key in extra_columns:
-        df[key] = [attrs.get(key, "") for attrs in all_attrs]
+        extra_data[key] = [attrs.get(key, "") for attrs in all_attrs]
+    
+    # Create a dataframe with all the extra columns and join with original df
+    extra_df = pd.DataFrame(extra_data)
+    df = pd.concat([df, extra_df], axis=1)
 
     # Renaming the column
-    df.rename(columns={'type': 'ifc/Type', 'Floor': 'floor', 'ObjectID': 'objectId', 'Name': 'name','Centroid X (m)': 'sv/Centroid/X','Centroid Y (m)': 'sv/Centroid/Y','Centroid Z (m)': 'sv/Centroid/Z','Volume (m³)': 'sv/ConvexHullVolume',}, inplace=True)
+    df.rename(columns={'type': 'ifc/Type', 'Floor': 'floor', 'ObjectID': 'objectId', 'Name': 'name',
+                     'Centroid X (m)': 'sv/Centroid/X','Centroid Y (m)': 'sv/Centroid/Y',
+                     'Centroid Z (m)': 'sv/Centroid/Z','Volume (m³)': 'sv/ConvexHullVolume',}, inplace=True)
 
     print("DataFrame created successfully.")
     return df
