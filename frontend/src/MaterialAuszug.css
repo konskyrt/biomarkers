@@ -1,0 +1,78 @@
+.material-auszug-dashboard .page-title {
+    margin: 25px;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+  
+  .material-auszug-dashboard input[type="file"] {
+    display: block;
+    margin-top: 0.5rem;
+  }
+  
+  .filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .filter-buttons button {
+    background: #f0f0f0;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  
+  .filter-buttons button.selected,
+  .filter-buttons button:hover {
+    background: #000;
+    color: #fff;
+  }
+  
+  .material-auszug-dashboard select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.6rem;
+    border: 1px solid #ccc;
+  }
+  
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .list li {
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .list li.selected,
+  .list li:hover {
+    background: #000;
+    color: #fff;
+  }
+  
+  .empty-viewer {
+    background: #eaeaea;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.8rem;
+  }
+  
+  .details-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .details-table td {
+    padding: 0.6rem;
+    border-bottom: 1px solid #ddd;
+  }
+  
