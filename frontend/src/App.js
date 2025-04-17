@@ -5,8 +5,8 @@ import MetricsSummary from './MetricsSummary';
 import AggregatedTable from './AggregatedTable';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
-import QuantityAnalysis from './QuantityAnalysis';
 import BIM2LOG from './BIM2LOG';
+import MaterialAuszug from './MaterialAuszug';
 import * as XLSX from 'xlsx';
 import logo from './ambergloglay.jpg'; // Adjust the path accordingly
 
@@ -353,19 +353,23 @@ const App = () => {
           </div>
         );
       
-      case 'BIM2LOG': // NEW CASE
+      case 'BIM2LOG':
         return <BIM2LOG />;
-
-      default:
+      case 'MaterialAuszug':
+        return <MaterialAuszug />;
+      case 'Landing Page':
         return (
           <div className="landing-page">
-            <h1>Welcome to the Classifier at Amberg Loglay</h1>
-            <p>Manage BIM data, generate schedules, Intergrated.</p>
+            <header className="header">
+              <img src={logo} alt="Amberg Loglay" className="header-logo" />
+              <h1>BIM Schedule Functionalities</h1>
+              <p>Manage BIM data, Generate schedules, Intergrated.</p>
+              <button onClick={() => setCurrentPage('BIM Data Analysis')}>Get Started</button>
+            </header>
           </div>
         );
-
-      
-        
+      default:
+        return <div>Select a page from the sidebar</div>;
     }
   };
 

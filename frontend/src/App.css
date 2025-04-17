@@ -1,302 +1,233 @@
-/* General Styling */
-body {
-  font-family: 'Roboto', Arial, sans-serif; /* Use modern and clean fonts */
-  background-color: #f8f9fa; /* Light gray background */
-  color: #212529; /* Dark text color */
+/* ── App.css ── */
+
+/* 1) Global reset & fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Add Landing Page styles below General Styling */
-.landing-page {
-  text-align: center;
-  padding: 60px 20px; /* Increase padding for better spacing */
-  background-color: #f5f5f5;
+html, body {
+  height: 100%;
 }
 
-.landing-page h1 {
-  font-size: 2.8rem; /* Increase font size for the header */
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.landing-page .file-inputs {
-  margin-top: 20px;
-}
-
-.landing-page label {
-  display: inline-block;
-  margin: 10px 0;
-  font-size: 1.2rem; /* Increase font size for better readability */
-  color: #555;
-}
-
-.landing-page input[type="file"] {
-  display: inline-block;
-  margin-top: 10px;
-}
-
-
-.header {
-  max-width: 800px;
-  margin: 0 auto;
-  color: #333;
-}
-
-.header-logo {
-  max-width: 120px;
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-}
-
-.header p {
-  font-size: 1.2rem;
-  margin-bottom: 30px;
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F5F5F5;   /* universal light gray */
+  color: #212529;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
 
-.primary-button {
-  background-color: #4a90e2;
-  color: #fff;
-  border: none;
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.primary-button:hover {
-  background-color: #357abd;
-}
-
-/* Sidebar Styling */
+/* 2) Sidebar (unchanged, just ensure it sits atop gray) */
 .sidebar {
-  position: fixed; /* Keeps the sidebar in place */
-  top: 0;
-  left: 40;
-  background-color: #f4f4f4;
-  width: 250px; /* Ensure this matches the .main-content margin */
-  height: 100vh; /* Full viewport height */
-  z-index: 1000; /* Keeps it above other content */
+  position: fixed;
+  top: 0; left: 0;
+  width: 15%;
+  height: 100vh;
+  background-color: #000;
+  padding: 2rem 1rem;
 }
 
-.logo-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px;
+.sidebar .logo-container {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-.logo {
-  width: 100%; /* Make the logo fit the width of the sidebar */
-  height: auto; /* Maintain the aspect ratio */
-  object-fit: contain; /* Prevent distortion or cropping */
+.sidebar .logo {
+  width: 100px;      /* a bit larger */
+  height: auto;     
 }
-
 
 .sidebar ul {
-  list-style-type: none;
-  padding: 0;
+  list-style: none;
 }
 
-.sidebar ul li {
-  padding: 10px 20px;
+.sidebar li {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 1rem;
   cursor: pointer;
-  color: #000000;
-  font-weight: bold; /* Make the text bold */
-  font-size: 1rem; /* Optional: Adjust the font size if needed */
+  transition: opacity .2s;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.sidebar li:hover {
+  opacity: .7;
 }
 
-.sidebar ul li:hover {
-  text-decoration: underline;
-}
-
-/* Main Content Styling */
+/* 3) Main content wrapper */
 .main-content {
-  margin-left: 250px; /* Matches the sidebar width */
-  padding: 40px; /* Adds consistent padding */
-  position: relative; /* Ensures it does not inherit unwanted positioning */
-  top: 0; /* Aligns it to the top of the screen */
+  margin-left: 15%;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #F5F5F5; /* ensure it's gray behind each page */
 }
 
-h1, h2 {
-  color: #212529; /* Dark gray for headers */
+/* 4) Universal “card” style for every DashboardItem or .card */
+.dashboard-item,
+.card {
+  background: #FFFFFF;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* DashboardItem header / card header */
+.dashboard-item-header,
+.card h3 {
+  padding: 1rem;
+  border-bottom: 1px solid #EEE;
+}
+.dashboard-item-header h3,
+.card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+/* DashboardItem content / card body */
+.dashboard-item-content,
+.card p,
+.card .field,
+.card .categories {
+  padding: 1rem;
+  flex: 1;
+}
+
+/* 5) Forms, selects, buttons inside cards */
+select,
+input[type="text"],
+input[type="file"],
+button {
+  font-family: 'Inter', sans-serif;
+}
+
+select,
+input[type="text"] {
+  width: 100%;
+  padding: .5rem;
+  border: 1px solid #CCC;
+  border-radius: .5rem;
 }
 
 button {
-  background-color: #007bff; /* Blue button */
-  color: #fff; /* White text */
+  padding: .75rem 1.5rem;
   border: none;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border-radius: 5px;
+  border-radius: .75rem;
+  background-color: #000;
+  color: #FFF;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: opacity .2s;
 }
-
 button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  opacity: .85;
 }
 
+/* 6) Tables inside cards */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
-  font-size: 0.9rem;
 }
-
-table th, table td {
-  border: 1px solid #dee2e6; /* Light border */
-  padding: 8px;
-  text-align: left;
+table th,
+table td {
+  padding: .75rem;
+  border: 1px solid #EEE;
 }
-
 table th {
-  background-color: #f8f9fa; /* Light gray for header */
-  font-weight: bold;
+  background: #F8F9FA;
+  text-align: left;
+  font-weight: 600;
 }
 
-table tr:nth-child(even) {
-  background-color: #f1f3f5; /* Alternating row colors */
-}
-
-/* Gantt Chart Styling */
-.gantt-chart {
-  background-color: #ffffff; /* White background */
-  border: 1px solid #dee2e6; /* Light border */
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.chart-container {
-  position: relative;
-  height: 400px;
-  overflow-x: scroll;
-  overflow-y: hidden;
+/* 7) Utility classes & placeholders */
+.empty-viewer {
+  background: #E0E0E0;
+  border-radius: .75rem;
+  height: 100%;
   display: flex;
   align-items: center;
-}
-
-.gantt-bar {
-  position: absolute;
-  height: 30px;
-  border-radius: 4px;
-  text-align: center;
-  line-height: 30px;
-  color: #ffffff;
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-
-.gantt-label {
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-/* Search Bar Styling */
-.search-bar {
-  width: 100%;
-  padding: 10px 15px;
+  justify-content: center;
+  color: #666;
   font-size: 1rem;
-  border: 1px solid #dee2e6; /* Light border */
-  border-radius: 5px;
-  margin-bottom: 20px;
 }
 
-/* Modal Styling */
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+/* 8) Responsive tweaks */
+@media (max-width: 1024px) {
+  .sidebar { width: 200px; }
+  .main-content { margin-left: 200px; }
 }
 
-.modal h3 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.modal p {
-  font-size: 1rem;
-  margin-bottom: 1rem;
-}
-
-.modal button {
-  background-color: #28a745; /* Green button */
-  color: #ffffff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal button:hover {
-  background-color: #218838; /* Darker green on hover */
-}
-
-/* Adjustments for Smaller Screens */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
-  }
-
-  .main-content {
-    margin-left: 200px;
-  }
-
-  .gantt-chart {
-    padding: 10px;
-  }
-
-  button {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-  }
-}
-
-.bim-data-analysis {
+/* 9) Force each grid‐cell to fill its RGL‑provided height */
+.react-grid-item {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-.bim-data-analysis h2 {
-  font-size: 1.8rem;
-  margin-bottom: 20px;
+/* Let our DashboardItem stretch to fill the cell */
+.react-grid-item > .dashboard-item {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+/* Within each card, make the header its natural height and body fill the rest */
+.dashboard-item-header {
+  flex: 0 0 auto;
+}
+.dashboard-item-content {
+  flex: 1 1 auto;
+  overflow: auto;
 }
 
-table th, table td {
-  border: 1px solid #dee2e6;
-  padding: 8px;
-  text-align: left;
+/* ── Sidebar item pills & icons ── */
+.sidebar {
+  padding-top: 1rem;       /* ensure logo is flush with top */
+}
+.logo-container {
+  margin-top: 0;           /* no extra top margin */
 }
 
-table th {
-  background-color: #f8f9fa;
-  font-weight: bold;
+.sidebar li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+.sidebar li:hover,
+.sidebar li.active {
+  background-color: rgba(255,255,255,0.1);
+}
+.sidebar-icon {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.sidebar li.active .sidebar-icon {
+  opacity: 1;
+}
+.sidebar-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+/* ── Card‐title enlargement ── */
+.dashboard-item-header h3 {
+  font-size: 1.25rem;      /* bump up title size */
 }
 
-ul li {
-  margin-bottom: 10px;
+/* ── Page title alignment ── */
+.page-title {
+  margin-top: 0;           /* remove extra top spacing */
 }
