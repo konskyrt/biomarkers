@@ -9,6 +9,25 @@
     margin-top: 0.5rem;
   }
   
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .control-section {
+    margin-top: 0.5rem;
+  }
+  
+  .control-section h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.3rem;
+  }
+  
   .filter-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -31,6 +50,22 @@
     color: #fff;
   }
   
+  .select-row {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .select-group {
+    flex: 1;
+  }
+  
+  .select-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
   .material-auszug-dashboard select {
     width: 100%;
     padding: 0.5rem;
@@ -38,10 +73,215 @@
     border: 1px solid #ccc;
   }
   
+  /* Chart styles */
+  .charts-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    gap: 1rem;
+  }
+  
+  .circle-charts {
+    margin-bottom: 1rem;
+  }
+  
+  .ring-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    justify-content: center;
+    padding: 1rem 0;
+  }
+  
+  .ring-chart-container {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .concentric-ring-chart {
+    position: relative;
+    filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1));
+  }
+  
+  .ring-segment {
+    transition: opacity 0.2s, stroke-width 0.2s;
+    cursor: pointer;
+  }
+  
+  .ring-segment:hover {
+    opacity: 0.8;
+    stroke-width: 9px;
+  }
+  
+  .center-text {
+    pointer-events: none;
+  }
+  
+  .mini-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+  }
+  
+  .mini-legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.2rem;
+  }
+  
+  .mini-legend-color {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 0.3rem;
+  }
+  
+  .mini-legend-label {
+    color: #666;
+  }
+  
+  .chart-legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .legend-color {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+  }
+  
+  .legend-label {
+    font-weight: bold;
+    margin-right: 0.4rem;
+  }
+  
+  .legend-value {
+    color: #666;
+    white-space: nowrap;
+  }
+  
+  .bar-charts-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+  
+  .bar-chart-wrapper {
+    border-top: 1px solid #eee;
+    padding-top: 0.5rem;
+  }
+  
+  .bar-chart-wrapper h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  .horizontal-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .bar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .bar-label {
+    width: 40%;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .bar-wrapper {
+    flex: 1;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+  }
+  
+  .bar-value {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .charts-container h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.3rem;
+  }
+  
+  .no-data-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-style: italic;
+  }
+  
+  .two-columns {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+  
+  .column {
+    flex: 1;
+  }
+  
+  .column h3 {
+    margin-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
   .list {
     list-style: none;
     padding: 0;
     margin: 0;
+    max-height: 250px;
+    overflow-y: auto;
   }
   
   .list li {
