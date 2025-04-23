@@ -9,22 +9,27 @@ RUN npm run build
 RUN ls -la /app/frontend/build
 
 # Stage 2: Build Flask backend
+# Stage 2: Build Flask backend
 FROM python:3.10-slim
 WORKDIR /app
 
-# Create a dedicated temp directory with proper permissions
+# Temp dir
 RUN mkdir -p /app/temp && chmod 777 /app/temp
 ENV TMPDIR=/app/temp
 
-# Install Python dependencies
+# Install dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend code into /app/backend
+# Copy application code
 COPY backend/ ./backend
+COPY apps/    ./apps             
 
-# Copy the React build from the frontend stage into the backend static folder
+# Copy React build into static
 COPY --from=frontend-build /app/frontend/build ./backend/static
+
+# Ensure /app is on Python path
+ENV PYTHONPATH=/app
 
 EXPOSE 5000
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "--timeout", "250", "backend.main:app"]
