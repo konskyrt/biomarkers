@@ -7,7 +7,7 @@ const menu = [
   { key: 'Classifier',     icon: FiHash },
   { key: 'BIM2LOG',        icon: FiBarChart2 },
   { key: 'MaterialAuszug', icon: FiBox },
-  { key: 'BIMChat',        icon: FiMessageSquare },
+  { key: 'BIM Chat',        icon: FiMessageSquare },
 ];
 
 export default function Sidebar({ currentPage, setCurrentPage, logo }) {

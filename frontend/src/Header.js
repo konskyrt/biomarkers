@@ -1,5 +1,6 @@
 import React from 'react';
-import logo from '../ambergloglay.jpg';
+import logo from './logo.png'
+// import logo from '../ambergloglay.jpg';
 
 const Header = () => {
   return (

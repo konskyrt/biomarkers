@@ -8,7 +8,8 @@ import PieChart from './PieChart';
 import BIM2LOG from './BIM2LOG';
 import MaterialAuszug from './MaterialAuszug';
 import * as XLSX from 'xlsx';
-import logo from './ambergloglay.jpg'; // Adjust the path accordingly
+import logo from './logo.png'
+// import logo from './ambergloglay.jpg'; // Adjust the path accordingly
 
 const App = () => {
   const [bimData, setBimData] = useState([]);
@@ -357,6 +358,204 @@ const App = () => {
         return <BIM2LOG />;
       case 'MaterialAuszug':
         return <MaterialAuszug />;
+      case 'Classifier':
+        return (
+          <div className="bim-data-analysis">
+            {/* Upload BIM Model */}
+            <div style={{ marginBottom: '5px' }}>
+              <label style={{ fontSize: '0.8rem', marginRight: '5px' }}>
+                Ihr BIM-Modell hochladen:
+              </label>
+              <input
+                type="file"
+                accept=".xlsx"
+                onChange={handleExcelUpload}
+                style={{ fontSize: '0.7rem', padding: '2px', minWidth: '120px' }}
+              />
+            </div>
+            {/* Filters */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '5px',
+                marginBottom: '5px',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                {/* Filter by Floor */}
+                <select
+                  onChange={handleFilterChange}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    Geschoss
+                  </option>
+                  {[...new Set(bimData.map((row) => row['FloorName']))].map(
+                    (floor, index) => (
+                      <option key={index} value={floor}>
+                        {floor}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {/* Filter by Name */}
+                <select
+                  onChange={handleFilterByName}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    Object Name
+                  </option>
+                  {[...new Set(bimData.map((row) => row['name']))].map(
+                    (name, index) => (
+                      <option key={index} value={name}>
+                        {name}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {/* Filter by Building */}
+                <select
+                  onChange={handleFilterByBuilding}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    Gebäude
+                  </option>
+                  {[...new Set(bimData.map((row) => row['Building']))].map(
+                    (building, index) => (
+                      <option key={index} value={building}>
+                        {building}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {/* Filter by Associated Task */}
+                <select
+                  onChange={handleFilterByTask}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    Task Name
+                  </option>
+                  {[...new Set(bimData.map((row) => row['associated_task']))].map(
+                    (task, index) => (
+                      <option key={index} value={task}>
+                        {task}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {/* Filter by IFC/Type */}
+                <select
+                  onChange={handleFilterByType}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    IFC-Typ
+                  </option>
+                  {[...new Set(bimData.map((row) => row['ifc/Type']))].map(
+                    (type, index) => (
+                      <option key={index} value={type}>
+                        {type}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {/* Filter by 3D Model */}
+                <select
+                  onChange={(e) => handleFilterBy3DModel(e)}
+                  defaultValue="All"
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="All" disabled>
+                    3D-Modell
+                  </option>
+                  {[...new Set(bimData.map((row) => row['3DModel']))].map(
+                    (model, index) => (
+                      <option key={index} value={model}>
+                        {model}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+
+              {/* Metric Dropdown */}
+              <div style={{ marginLeft: 'auto' }}>
+                <label style={{ fontSize: '0.8rem', marginRight: '5px' }}>
+                  Metrik:
+                </label>
+                <select
+                  onChange={(e) => setSelectedMetric(e.target.value)}
+                  style={{ fontSize: '0.8rem', padding: '3px', minWidth: '100px' }}
+                >
+                  <option value="sv/ConvexHullVolume">Volume</option>
+                  <option value="sv/ConvexHullSurfaceArea">Surface Area</option>
+                </select>
+              </div>
+            </div>
+            <MetricsSummary filteredData={filteredData} />
+
+            {/* Charts Section */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '20px',
+                marginTop: '10px',
+              }}
+            >
+              {/* Pie Chart with Legend */}
+              <PieChart filteredData={filteredData} selectedMetric={selectedMetric} />
+              {/* Bar Charts */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '20px',
+                  overflowX: 'auto', // Enable horizontal scrolling
+                  height: '400px', // Adjusted height
+                }}
+              >
+                {/* Volume Chart */}
+                <BarChart
+                  filteredData={filteredData}
+                  selectedMetric={selectedMetric}
+                  title={selectedMetric}
+                />
+
+                {/* Object Count Chart */}
+                <BarChart
+                  filteredData={filteredData}
+                  selectedMetric="Object Count"
+                  title="Anzahl der Objekte pro Kategorie"
+                  generateData={generateObjectCountData}
+                />
+              </div>
+            </div>
+
+            {/* Aggregation Table */}
+            <AggregatedTable
+              filteredData={filteredData}
+              aggregationType={aggregationType}
+              setAggregationType={setAggregationType}
+            />
+          </div>
+        );
       case 'Landing Page':
         return (
           <div className="landing-page">
