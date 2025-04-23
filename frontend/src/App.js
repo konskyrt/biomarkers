@@ -356,7 +356,7 @@ const App = () => {
       
       case 'BIM2LOG':
         return <BIM2LOG />;
-      case 'MaterialAuszug':
+      case 'Materialauszug':
         return <MaterialAuszug />;
       case 'Classifier':
         return (
@@ -562,7 +562,7 @@ const App = () => {
             <header className="header">
               <img src={logo} alt="Amberg Loglay" className="header-logo" />
               <h1>BIM Schedule Functionalities</h1>
-              <p>Manage BIM data, Generate schedules, Intergrated.</p>
+              <p>Manage BIM data, Generate schedules, Integrated.</p>
               <button onClick={() => setCurrentPage('BIM Data Analysis')}>Get Started</button>
             </header>
           </div>
@@ -579,7 +579,7 @@ const App = () => {
           <header className="header">
             <img src={logo} alt="Amberg Loglay" className="header-logo" />
             <h1>BIM Schedule Functionalities</h1>
-            <p>Manage BIM data, Generate schedules, Intergrated.</p>
+            <p>Manage BIM data, Generate schedules, Integrated.</p>
             <button onClick={() => setCurrentPage('BIM Data Analysis')}>Get Started</button>
           </header>
         </div>

@@ -6,7 +6,7 @@ import { FiHash, FiBarChart2, FiBox, FiMessageSquare } from 'react-icons/fi';
 const menu = [
   { key: 'Classifier',     icon: FiHash },
   { key: 'BIM2LOG',        icon: FiBarChart2 },
-  { key: 'MaterialAuszug', icon: FiBox },
+  { key: 'Materialauszug', icon: FiBox },
   { key: 'BIM Chat',        icon: FiMessageSquare },
 ];
 
