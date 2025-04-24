@@ -397,7 +397,7 @@ export default function MaterialAuszug() {
         { label: 'Volumen',      value: `${vol.toFixed(2)} m³` }
       ];
     }
-    if (/T‑Stück|Bogen/.test(btl)) {
+    if (/T‑Stück|bogen|T-Stück|bend/i.test(btl)) {
       const vol = rows.reduce((s,r)=>s+(Number(r['Volume (m³)'])||0),0);
       return [
         { label: 'Anzahl', value: rows.length },
@@ -419,7 +419,7 @@ export default function MaterialAuszug() {
       const componentTypes = {
         'Rohr': filtered.filter(r => /rohr|pipe/i.test(r['label name'])),
         'T-Stück': filtered.filter(r => /T-Stück|T-piece/i.test(r['label name'])),
-        'Bogen': filtered.filter(r => /Bogen|bend/i.test(r['label name'])),
+        'Bogen': filtered.filter(r => /bogen|bend/i.test(r['label name'])),
         'Ventil': filtered.filter(r => /Ventil|valve/i.test(r['label name'])),
         'Kabeltrasse': filtered.filter(r => /Kabeltrasse|cable tray/i.test(r['label name'])),
         'Pumpe': filtered.filter(r => /Pumpe|pump/i.test(r['label name'])),
