@@ -643,7 +643,7 @@ export default function MaterialAuszug() {
         .filter(([_, cost]) => cost > 0)
         .map(([code, cost]) => ({
           label: gewerkeMap[code] || code,
-          value: `${cost.toLocaleString('de-DE')} CHF`
+          value: `${cost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`
         }));
         
       // Calculate total cost across all Gewerke
@@ -652,7 +652,7 @@ export default function MaterialAuszug() {
       // Add total row
       results.push({
         label: 'Gesamtkosten',
-        value: `${totalCost.toLocaleString('de-DE')} CHF`,
+        value: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`,
         isTotal: true
       });
         
@@ -702,17 +702,17 @@ export default function MaterialAuszug() {
             const totalCost = unitCost * len;
             summary.push({ 
               label: type, 
-              value: `${items.length} Stück, ${len.toFixed(2)} m`,
-              unitCost: `${unitCost} CHF/m`,
-              totalCost: `${totalCost.toLocaleString('de-DE')} CHF`
+              value: `${items.length} Stück, ${len.toFixed(1)} m`,
+              unitCost: `${unitCost.toFixed(1)} CHF/m`,
+              totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`
             });
           } else {
             const totalCost = unitCost * items.length;
             summary.push({ 
               label: type, 
               value: `${items.length} Stück`,
-              unitCost: `${unitCost} CHF/Stück`,
-              totalCost: `${totalCost.toLocaleString('de-DE')} CHF`
+              unitCost: `${unitCost.toFixed(1)} CHF/Stück`,
+              totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`
             });
           }
         }
@@ -729,7 +729,7 @@ export default function MaterialAuszug() {
         label: 'Gesamtkosten', 
         value: '', 
         unitCost: '',
-        totalCost: `${totalCost.toLocaleString('de-DE')} CHF`,
+        totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`,
         isTotal: true
       });
       
@@ -737,7 +737,7 @@ export default function MaterialAuszug() {
         label: 'Übersicht', 
         value: 'Keine Komponenten gefunden',
         unitCost: '',
-        totalCost: '0 CHF'
+        totalCost: '0.0 CHF'
       }];
     }
     
@@ -1486,14 +1486,14 @@ export default function MaterialAuszug() {
                     key={k}
                     className={k === kat ? 'selected' : ''}
                     onClick={() => setKat(prev => prev === k ? '' : k)}
-                    >{k}</li>
-                  ))}
+                  >{k}</li>
+                ))}
                   {kategorien.length > 10 && (
                     <li style={{ color: '#777', fontSize: '0.8rem', textAlign: 'center' }}>
                       ...und {kategorien.length - 10} weitere
                     </li>
                   )}
-                </ul>
+              </ul>
                 
                 {/* Kategorien dropdown */}
                 {expandedKategorien && (
@@ -1554,14 +1554,14 @@ export default function MaterialAuszug() {
                     key={b}
                     className={b === btl ? 'selected' : ''}
                     onClick={() => setBtl(prev => prev === b ? '' : b)}
-                    >{b}</li>
-                  ))}
+                  >{b}</li>
+                ))}
                   {bauteile.length > 10 && (
                     <li style={{ color: '#777', fontSize: '0.8rem', textAlign: 'center' }}>
                       ...und {bauteile.length - 10} weitere
                     </li>
                   )}
-                </ul>
+              </ul>
                 
                 {/* Bauteile dropdown */}
                 {expandedBauteile && (
@@ -1646,23 +1646,116 @@ export default function MaterialAuszug() {
                         )}
                       </thead>
                       <tbody>
-                        {costDetails.map((d, index) => (
-                          <tr key={d.label + index} style={
-                            d.isTotal || d.label === 'Gesamtkosten' ? 
-                            { fontWeight: 'bold', borderTop: '1px solid #ddd' } : {}
-                          }>
-                            <td style={{ padding: '5px' }}>{d.label}</td>
-                            {gew !== 'Alle' ? (
-                              <>
-                                <td style={{ padding: '5px' }}>{d.value || ''}</td>
-                                <td style={{ padding: '5px' }}>{d.unitCost || ''}</td>
-                                <td style={{ textAlign: 'right', padding: '5px' }}>{d.totalCost || ''}</td>
-                              </>
-                            ) : (
-                              <td style={{ textAlign: 'right', padding: '5px' }}>{d.value || ''}</td>
-                            )}
-                          </tr>
-                        ))}
+                        {costDetails.map((d, index) => {
+                          // Determine the color for this row (if it's a Gewerk in 'Alle' view)
+                          let rowColor = null;
+                          if (gew === 'Alle' && !d.isTotal) {
+                            const gewerkEntry = Object.entries(gewerkeMap).find(([code, name]) => 
+                              name === d.label || code === d.label
+                            );
+                            if (gewerkEntry) {
+                              rowColor = gewerkeColors[gewerkEntry[0]];
+                            }
+                          }
+                          
+                          // Calculate max value for 'Alle' view to determine bar width
+                          let maxValue = 0;
+                          let currentValue = 0;
+                          
+                          if (gew === 'Alle') {
+                            // Find maximum cost value (excluding total row)
+                            costDetails.forEach(item => {
+                              if (!item.isTotal && item.value) {
+                                const value = parseFloat(item.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));
+                                if (!isNaN(value) && value > maxValue) {
+                                  maxValue = value;
+                                }
+                              }
+                            });
+                            
+                            // Get current row value
+                            if (d.value) {
+                              currentValue = parseFloat(d.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));
+                              if (isNaN(currentValue)) currentValue = 0;
+                            }
+                          }
+                          
+                          return (
+                            <tr key={d.label + index} style={{
+                              ...(d.isTotal || d.label === 'Gesamtkosten' ? 
+                                { fontWeight: 'bold', borderTop: '1px solid #ddd' } : {})
+                            }}>
+                              <td style={{ 
+                                padding: '8px 5px',
+                                fontWeight: gew === 'Alle' && !d.isTotal ? 'bold' : 'inherit',
+                                color: 'inherit' 
+                              }}>
+                                {d.label}
+                              </td>
+                              {gew !== 'Alle' ? (
+                                <>
+                                  <td style={{ padding: '5px' }}>{d.value || ''}</td>
+                                  <td style={{ padding: '5px' }}>{d.unitCost || ''}</td>
+                                  <td style={{ padding: '5px', position: 'relative' }}>
+                                    {d.isTotal ? (
+                                      <div style={{ textAlign: 'right', fontWeight: 'bold' }}>{d.value}</div>
+                                    ) : (
+                                      <div style={{ 
+                                        position: 'relative',
+                                        height: '24px',
+                                        paddingRight: '8px',
+                                        display: 'flex',
+                                        flexDirection: 'row-reverse',
+                                        alignItems: 'center'
+                                      }}>
+                                        {/* Cost value */}
+                                        <div style={{ 
+                                          width: '120px',
+                                          textAlign: 'right',
+                                          color: rowColor || 'inherit',
+                                          zIndex: 2,
+                                          marginLeft: '10px'
+                                        }}>{d.value}</div>
+                                        
+                                        {/* Bar container with fixed width */}
+                                        <div style={{
+                                          flex: 1,
+                                          height: '16px',
+                                          position: 'relative',
+                                          marginLeft: '40px' /* Add more space on the left */
+                                        }}>
+                                          {/* The actual bar */}
+                                          {maxValue > 0 && (
+                                            <div style={{ 
+                                              height: '100%',
+                                              width: `${Math.min(100, (currentValue / maxValue) * 150)}%`, /* Increase bar width by 50% */
+                                              backgroundColor: rowColor || '#ccc',
+                                              borderRadius: '0 2px 2px 0', /* Round only right corners */
+                                              opacity: 0.7,
+                                              position: 'absolute',
+                                              right: 0
+                                            }}></div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </td>
+                                </>
+                              ) : (
+                                <td style={{ padding: '8px 5px', textAlign: 'right' }}>
+                                  <div style={{ 
+                                    width: '120px', 
+                                    display: 'inline-block',
+                                    color: 'inherit',
+                                    fontWeight: d.isTotal ? 'bold' : 'normal'
+                                  }}>
+                                    {d.value}
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   )}
