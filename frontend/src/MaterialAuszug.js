@@ -394,20 +394,23 @@ export default function MaterialAuszug() {
       return [
           { label: 'Anzahl', value: rows.length },
           { label: 'Gesamtlänge', value: `${(len/1000).toFixed(2)} m` },
-        { label: 'Volumen',      value: `${vol.toFixed(2)} m³` }
+        { label: 'Volumen',      value: `${vol.toFixed(2)} m³` },
+        { label: 'Kosten', value: '-' }
       ];
     }
     if (/T‑Stück|bogen|T-Stück|bend/i.test(btl)) {
       const vol = rows.reduce((s,r)=>s+(Number(r['Volume (m³)'])||0),0);
       return [
         { label: 'Anzahl', value: rows.length },
-        { label: 'Volumen', value: `${vol.toFixed(2)} m³` }
+        { label: 'Volumen', value: `${vol.toFixed(2)} m³` },
+        { label: 'Kosten', value: '-' }
       ];
     }
     const vol = rows.reduce((s,r)=>s+(Number(r['Volume (m³)'])||0),0);
       return [
         { label: 'Anzahl', value: rows.length },
-        { label: 'Volumen', value: `${vol.toFixed(2)} m³` }
+        { label: 'Volumen', value: `${vol.toFixed(2)} m³` },
+        { label: 'Kosten', value: '-' }
       ];
     } 
     // If a Gewerk is selected, show an overview of component types
@@ -440,7 +443,10 @@ export default function MaterialAuszug() {
       // Add total count
       summary.push({ label: 'Gesamt', value: `${filtered.length} Komponenten` });
       
-      return summary.length > 0 ? summary : [{ label: 'Übersicht', value: 'Keine Komponenten gefunden' }];
+      // Add costs as the last entry
+      summary.push({ label: 'Kosten', value: '-' });
+      
+      return summary.length > 0 ? summary : [{ label: 'Übersicht', value: 'Keine Komponenten gefunden' }, { label: 'Kosten', value: '-' }];
     }
     
     return null;
