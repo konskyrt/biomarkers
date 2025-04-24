@@ -301,13 +301,69 @@ export default function MaterialAuszug() {
       
       // Load the model with fragments
       if (fragmentsRef.current) {
-        const model = await fragmentsRef.current.load(fragmentsData, { modelId: "imported-model" });
-        
-        if (model && cameraRef.current && sceneRef.current) {
-          model.useCamera(cameraRef.current);
-          sceneRef.current.add(model.object);
-          await fragmentsRef.current.update(true);
-          console.log("Model loaded successfully");
+        try {
+          // Clear any existing models
+          if (sceneRef.current) {
+            // Remove all models from the scene
+            const toRemove = [];
+            sceneRef.current.traverse((object) => {
+              if (object.userData && object.userData.isFragmentMesh) {
+                toRemove.push(object);
+              }
+            });
+            toRemove.forEach((object) => {
+              sceneRef.current.remove(object);
+            });
+          }
+          
+          // Use a unique ID based on timestamp to avoid conflicts
+          const modelId = `imported-model-${Date.now()}`;
+          
+          // Create a blob URL for the fragments data
+          const blob = new Blob([fragmentsData], { type: 'application/octet-stream' });
+          const dataUrl = URL.createObjectURL(blob);
+          
+          // Load model from URL instead of directly from buffer
+          const model = await fragmentsRef.current.load(dataUrl, { modelId });
+          
+          if (model && cameraRef.current && sceneRef.current) {
+            model.useCamera(cameraRef.current);
+            sceneRef.current.add(model.object);
+            
+            // Center and zoom to fit the model
+            if (model.boundingBox && cameraRef.current) {
+              const box = model.boundingBox;
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z);
+              const fov = cameraRef.current.fov * (Math.PI / 180);
+              const distance = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
+              
+              cameraRef.current.position.copy(center);
+              cameraRef.current.position.z += distance * 1.5;
+              cameraRef.current.lookAt(center);
+            }
+            
+            await fragmentsRef.current.update(true);
+            console.log("Model loaded successfully");
+          }
+        } catch (error) {
+          console.error("Error loading fragments model:", error);
+          
+          // Fallback method if the new approach fails
+          try {
+            console.log("Attempting fallback loading method...");
+            const model = await fragmentsRef.current.load(fragmentsData);
+            
+            if (model) {
+              console.log("Fallback loading successful");
+              if (cameraRef.current) model.useCamera(cameraRef.current);
+              if (sceneRef.current) sceneRef.current.add(model.object);
+              await fragmentsRef.current.update(true);
+            }
+          } catch (fallbackError) {
+            console.error("Fallback loading also failed:", fallbackError);
+          }
         }
       } else {
         console.error("Fragments loader not initialized");
@@ -418,30 +474,233 @@ export default function MaterialAuszug() {
       // Create a summary of component types for the selected Gewerk
       const summary = [];
       
-      // Count components by type and add to summary
-      const componentTypes = {
-        'Rohr': filtered.filter(r => /rohr|pipe/i.test(r['label name'])),
-        'T-Stück': filtered.filter(r => /T-Stück|T-piece/i.test(r['label name'])),
-        'Bogen': filtered.filter(r => /bogen|bend/i.test(r['label name'])),
-        'Ventil': filtered.filter(r => /Ventil|valve/i.test(r['label name'])),
-        'Kabeltrasse': filtered.filter(r => /Kabeltrasse|cable tray/i.test(r['label name'])),
-        'Pumpe': filtered.filter(r => /Pumpe|pump/i.test(r['label name'])),
-      };
+      // Get only the items that belong to this Gewerk
+      const gewerkItems = filtered;
       
-      // Build summary list
-      Object.entries(componentTypes).forEach(([type, items]) => {
-        if (items.length > 0) {
-          if (type === 'Rohr') {
-            const len = items.reduce((s,r)=>s+(Number(r.Length)||0),0);
-            summary.push({ label: type, value: `${items.length} Stück, ${(len/1000).toFixed(2)} m` });
-          } else {
-            summary.push({ label: type, value: `${items.length} Stück` });
-          }
+      // Group components by their label code
+      const componentGroups = {};
+      
+      // Process each item and group by label code
+      gewerkItems.forEach(item => {
+        const labelCode = item['label code'] || '';
+        if (!labelCode) return;
+        
+        // Extract the first part of the label code (before the dot) to check if it matches the current Gewerk
+        const mainCode = labelCode.split('.')[0];
+        if (mainCode !== gew) return;
+        
+        // Get the sub-code (after the dot)
+        const subCode = labelCode.includes('.') ? labelCode : '';
+        
+        if (!componentGroups[subCode]) {
+          componentGroups[subCode] = [];
         }
+        
+        componentGroups[subCode].push(item);
       });
       
-      // Add total count
-      summary.push({ label: 'Gesamt', value: `${filtered.length} Komponenten` });
+      // Process pipe components (based on exact codes)
+      const pipeItems = [];
+      
+      if (gew === 'SN' && componentGroups['SN.01']) {
+        // Wasserrohr (gerades Segment)
+        pipeItems.push(...componentGroups['SN.01']);
+      }
+      
+      if (gew === 'EL') {
+        // Leerrohr/Kabelschutzrohr
+        if (componentGroups['EL.01']) pipeItems.push(...componentGroups['EL.01']);
+      }
+      
+      if (gew === 'SPR' && componentGroups['SPR.02']) {
+        // Sprinklerrohr
+        pipeItems.push(...componentGroups['SPR.02']);
+      }
+      
+      if (gew === 'HZ' && componentGroups['HZ.04']) {
+        // Heizungsrohre (Vorlauf & Rücklauf)
+        pipeItems.push(...componentGroups['HZ.04']);
+      }
+      
+      if (gew === 'KT' && componentGroups['KT.04']) {
+        // Kaltwasserrohre
+        pipeItems.push(...componentGroups['KT.04']);
+      }
+      
+      if (gew === 'LF' && componentGroups['LF.03']) {
+        // Luftkanal (gerades Segment)
+        pipeItems.push(...componentGroups['LF.03']);
+      }
+      
+      // Get T-pieces (based on exact codes)
+      const tpieceItems = [];
+      
+      if (gew === 'SN' && componentGroups['SN.04']) {
+        // Rohrarmaturen: T-Stücke
+        tpieceItems.push(...componentGroups['SN.04']);
+      }
+      
+      if (gew === 'EL' && componentGroups['EL.02']) {
+        // Leerrohrzubehör (Bögen, T-Stücke)
+        // Note: This might include bends too, consider splitting if needed
+        tpieceItems.push(...componentGroups['EL.02']);
+      }
+      
+      if (gew === 'EL' && componentGroups['EL.06']) {
+        // Kabeltrassenzubehör: T-Stücke
+        tpieceItems.push(...componentGroups['EL.06']);
+      }
+      
+      if (gew === 'SPR' && componentGroups['SPR.04']) {
+        // Sprinklerzubehör: T-Stücke
+        tpieceItems.push(...componentGroups['SPR.04']);
+      }
+      
+      if (gew === 'HZ' && componentGroups['HZ.07']) {
+        // Heizfittings: T-Stück
+        tpieceItems.push(...componentGroups['HZ.07']);
+      }
+      
+      if (gew === 'KT' && componentGroups['KT.07']) {
+        // Kältefittings: T-Stück
+        tpieceItems.push(...componentGroups['KT.07']);
+      }
+      
+      if (gew === 'LF' && componentGroups['LF.05']) {
+        // Luftfittings: T-Stücke
+        tpieceItems.push(...componentGroups['LF.05']);
+      }
+      
+      // Get bends (Bögen) (based on exact codes)
+      const bendItems = [];
+      
+      if (gew === 'SN' && componentGroups['SN.03']) {
+        // Rohrarmaturen: Bögen
+        bendItems.push(...componentGroups['SN.03']);
+      }
+      
+      if (gew === 'EL' && componentGroups['EL.02']) {
+        // Leerrohrzubehör (Bögen, T-Stücke) 
+        // Note: This might include T-pieces too, consider splitting if needed
+        if (!tpieceItems.includes(componentGroups['EL.02'])) {
+          bendItems.push(...componentGroups['EL.02']);
+        }
+      }
+      
+      if (gew === 'EL' && componentGroups['EL.05']) {
+        // Kabeltrassenzubehör: Bögen
+        bendItems.push(...componentGroups['EL.05']);
+      }
+      
+      if (gew === 'SPR' && componentGroups['SPR.03']) {
+        // Sprinklerzubehör: Bögen
+        bendItems.push(...componentGroups['SPR.03']);
+      }
+      
+      if (gew === 'HZ' && componentGroups['HZ.06']) {
+        // Heizfittings: Bögen
+        bendItems.push(...componentGroups['HZ.06']);
+      }
+      
+      if (gew === 'KT' && componentGroups['KT.06']) {
+        // Kältefittings: Bögen
+        bendItems.push(...componentGroups['KT.06']);
+      }
+      
+      if (gew === 'LF' && componentGroups['LF.04']) {
+        // Luftfittings: Bögen
+        bendItems.push(...componentGroups['LF.04']);
+      }
+      
+      // Get valves (Ventile) (based on exact codes)
+      const valveItems = [];
+      
+      if (gew === 'SN' && componentGroups['SN.05']) {
+        // Ventile (Absperr-, Rückfluss-, Druckminderventile etc.)
+        valveItems.push(...componentGroups['SN.05']);
+      }
+      
+      if (gew === 'SPR' && componentGroups['SPR.09']) {
+        // Rückflussverhinderer
+        valveItems.push(...componentGroups['SPR.09']);
+      }
+      
+      if (gew === 'HZ' && componentGroups['HZ.08']) {
+        // Ventile (Heizsventile)
+        valveItems.push(...componentGroups['HZ.08']);
+      }
+      
+      if (gew === 'KT' && componentGroups['KT.08']) {
+        // Ventile (Kaltwassersystem)
+        valveItems.push(...componentGroups['KT.08']);
+      }
+      
+      if (gew === 'LF' && componentGroups['LF.06']) {
+        // Drosselklappen (Luftstromdrossler)
+        valveItems.push(...componentGroups['LF.06']);
+      }
+      
+      // Get pumps (Pumpen) (based on exact codes)
+      const pumpItems = [];
+      
+      if (gew === 'SN' && componentGroups['SN.06']) {
+        // Boosterpumpe (Druckerhöhungspumpe)
+        pumpItems.push(...componentGroups['SN.06']);
+      }
+      
+      if (gew === 'SPR') {
+        // Brandschutzpumpe & Jockey-Pumpe
+        if (componentGroups['SPR.06']) pumpItems.push(...componentGroups['SPR.06']);
+        if (componentGroups['SPR.07']) pumpItems.push(...componentGroups['SPR.07']);
+      }
+      
+      if (gew === 'HZ' && componentGroups['HZ.03']) {
+        // Umwälzpumpe (Heizungspumpe)
+        pumpItems.push(...componentGroups['HZ.03']);
+      }
+      
+      if (gew === 'KT' && componentGroups['KT.03']) {
+        // Kaltwasserpumpe
+        pumpItems.push(...componentGroups['KT.03']);
+      }
+      
+      // Get cable trays (Kabeltrassen) (based on exact codes)
+      const cableTrayItems = [];
+      
+      if (gew === 'EL' && componentGroups['EL.04']) {
+        // Kabeltrasse
+        cableTrayItems.push(...componentGroups['EL.04']);
+      }
+      
+      // Build the summary list with counts and measurements
+      if (pipeItems.length > 0) {
+        const len = pipeItems.reduce((s,r)=>s+(Number(r.Length)||0),0);
+        summary.push({ label: 'Rohr', value: `${pipeItems.length} Stück, ${(len/1000).toFixed(2)} m` });
+      }
+      
+      if (tpieceItems.length > 0) {
+        summary.push({ label: 'T-Stück', value: `${tpieceItems.length} Stück` });
+      }
+      
+      if (bendItems.length > 0) {
+        summary.push({ label: 'Bögen', value: `${bendItems.length} Stück` });
+      }
+      
+      if (valveItems.length > 0) {
+        summary.push({ label: 'Ventil', value: `${valveItems.length} Stück` });
+      }
+      
+      if (cableTrayItems.length > 0) {
+        summary.push({ label: 'Kabeltrasse', value: `${cableTrayItems.length} Stück` });
+      }
+      
+      if (pumpItems.length > 0) {
+        summary.push({ label: 'Pumpe', value: `${pumpItems.length} Stück` });
+      }
+      
+      // Add total count - only for items belonging to this Gewerk
+      const totalGewerk = gewerkItems.filter(item => (item['label code'] || '').split('.')[0] === gew).length;
+      summary.push({ label: 'Gesamt', value: `${totalGewerk} Komponenten` });
       
       // Add costs as the last entry
       summary.push({ label: 'Kosten', value: '-' });
@@ -645,14 +904,14 @@ export default function MaterialAuszug() {
 
               <div className="control-section">
                 <h3>Gewerke</h3>
-                <div className="filter-buttons">
-                  {gewerkeList.map(code => (
-                    <button
-                      key={code}
-                      onClick={() => setGew(code)}
-                      style={{ backgroundColor: gewerkeColors[code], opacity: code === gew ? 1 : 0.6 }}
-                    >{gewerkeMap[code] || code}</button>
-                  ))}
+              <div className="filter-buttons">
+                {gewerkeList.map(code => (
+                  <button
+                    key={code}
+                    onClick={() => setGew(code)}
+                    style={{ backgroundColor: gewerkeColors[code], opacity: code === gew ? 1 : 0.6 }}
+                  >{gewerkeMap[code] || code}</button>
+                ))}
                   <button
                     onClick={() => {
                       // Toggle between 'Alle' (normal view) and 'ExpandAll' (expanded view)
@@ -1188,10 +1447,10 @@ export default function MaterialAuszug() {
                 </div>
                 <ul className="list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                   {kategorien.slice(0, 10).map(k => (
-                    <li
-                      key={k}
-                      className={k === kat ? 'selected' : ''}
-                      onClick={() => setKat(prev => prev === k ? '' : k)}
+                  <li
+                    key={k}
+                    className={k === kat ? 'selected' : ''}
+                    onClick={() => setKat(prev => prev === k ? '' : k)}
                     >{k}</li>
                   ))}
                   {kategorien.length > 10 && (
@@ -1222,9 +1481,9 @@ export default function MaterialAuszug() {
                               setKat(prev => prev === k ? '' : k);
                               setExpandedKategorien(false);
                             }}
-                          >{k}</li>
-                        ))}
-                      </ul>
+                  >{k}</li>
+                ))}
+              </ul>
                     </div>
                   </div>
                 )}
@@ -1256,10 +1515,10 @@ export default function MaterialAuszug() {
                 </div>
                 <ul className="list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                   {bauteile.slice(0, 10).map(b => (
-                    <li
-                      key={b}
-                      className={b === btl ? 'selected' : ''}
-                      onClick={() => setBtl(prev => prev === b ? '' : b)}
+                  <li
+                    key={b}
+                    className={b === btl ? 'selected' : ''}
+                    onClick={() => setBtl(prev => prev === b ? '' : b)}
                     >{b}</li>
                   ))}
                   {bauteile.length > 10 && (
@@ -1290,9 +1549,9 @@ export default function MaterialAuszug() {
                               setBtl(prev => prev === b ? '' : b);
                               setExpandedBauteile(false);
                             }}
-                          >{b}</li>
-                        ))}
-                      </ul>
+                  >{b}</li>
+                ))}
+              </ul>
                     </div>
                   </div>
                 )}
