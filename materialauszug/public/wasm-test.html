@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAssembly Test for IFC.js</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+    <h1 class="text-2xl font-bold mb-4">WebAssembly Test for IFC.js</h1>
+    
+    <div class="mb-6">
+      <p class="mb-2">This page tests if WebAssembly files needed for IFC.js can be loaded correctly.</p>
+      <p class="text-sm text-gray-600">If you're seeing WebAssembly errors in the IFC Viewer, this page will help diagnose the issue.</p>
+    </div>
+    
+    <div id="wasm-test-result" class="mb-6">
+      <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
+        <p class="font-bold">Testing...</p>
+        <p>Please wait while we test loading the WebAssembly files.</p>
+      </div>
+    </div>
+    
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <h2 class="text-lg font-medium mb-2">WASM Configuration</h2>
+      <div class="mb-4">
+        <h3 class="font-medium">Expected WASM File Locations:</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><code>/wasm/web-ifc.wasm</code></li>
+          <li><code>/wasm/web-ifc-mt.wasm</code></li>
+        </ul>
+      </div>
+      
+      <div class="mb-4">
+        <h3 class="font-medium">Required MIME Types:</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><code>application/wasm</code> for <code>.wasm</code> files</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <h2 class="text-lg font-medium mb-2">Common Issues & Solutions</h2>
+      
+      <div class="mb-4">
+        <h3 class="font-medium text-red-600">File Not Found Errors:</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Make sure the WASM files are in your <code>public/wasm/</code> directory</li>
+          <li>Run <code>npm run setup-wasm</code> to copy the files from <code>node_modules/web-ifc/dist/</code></li>
+        </ul>
+      </div>
+      
+      <div class="mb-4">
+        <h3 class="font-medium text-red-600">MIME Type Errors:</h3>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>For IIS servers, make sure <code>web.config</code> is in your <code>public/wasm/</code> directory</li>
+          <li>For Apache servers, make sure <code>.htaccess</code> is in your <code>public/wasm/</code> directory</li>
+          <li>For development servers, check if your dev server is configured to serve WASM files correctly</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="bg-blue-50 p-4 rounded-lg">
+      <h2 class="text-lg font-medium mb-2">Manual Check</h2>
+      <p class="mb-2">You can manually check if the WASM files are accessible by clicking these links:</p>
+      <div class="flex space-x-4">
+        <a href="./wasm/web-ifc.wasm" class="text-blue-600 hover:text-blue-800 font-medium" target="_blank">web-ifc.wasm</a>
+        <a href="./wasm/web-ifc-mt.wasm" class="text-blue-600 hover:text-blue-800 font-medium" target="_blank">web-ifc-mt.wasm</a>
+      </div>
+      <p class="text-sm text-gray-600 mt-2">Note: The browser might download these files instead of displaying them.</p>
+    </div>
+  </div>
+  
+  <script src="wasm-test.js"></script>
+</body>
+</html> 
