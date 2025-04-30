@@ -37,32 +37,34 @@ const data = {
 
 const options = {
   indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
   plugins: {
-    legend: {display: false},
+    legend: { display: false },
     tooltip: {
       callbacks: {
-        label: ctx => `${ctx.raw.toLocaleString()}`
-      }
-    }
+        label: (ctx) => `${ctx.raw.toLocaleString()}`,
+      },
+    },
   },
   scales: {
     x: {
       ticks: {
-        callback: v => `${v/1000}K`
-      }
+        callback: (v) => `${v / 1000}K`,
+      },
     },
     y: {
       ticks: {
-        font: {size: 12}
-      }
-    }
-  }
+        font: { size: 12 },
+      },
+    },
+  },
 };
 
 const ObjectFamilyBarChart = () => (
   <div className="bg-white shadow rounded-lg p-4">
     <h3 className="text-lg font-medium mb-4">Top-Elementfamilien</h3>
-    <div className="h-64">
+    <div className="h-64 w-full">
       <Bar data={data} options={options} />
     </div>
   </div>

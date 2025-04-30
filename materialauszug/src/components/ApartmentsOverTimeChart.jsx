@@ -115,9 +115,9 @@ const ApartmentsOverTimeChart = () => {
   }), [showAbove, showBelow]);
 
   return (
-    <div className="bg-white shadow rounded-lg p-4">
-      <h3 className="text-lg font-medium mb-4">Diagramm des Fertigstellungsgrads</h3>
-      <div className="h-80 relative w-full">
+    <div className="bg-white shadow rounded-lg p-4 h-full flex flex-col">
+      <h3 className="text-lg font-medium mb-4">Gesamt Fertigstellungsgrad</h3>
+      <div className="flex-1 relative w-full">
         <Line data={chartData} options={chartOptions} redraw />
       </div>
     </div>

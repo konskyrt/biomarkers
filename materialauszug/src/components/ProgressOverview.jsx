@@ -16,14 +16,14 @@ const ProgressOverview = () => (
     </div>
     
     {/* Original content - now below the material section, without the heading */}
-    <div className="grid grid-cols-12 gap-6 items-start">
+    <div className="grid grid-cols-12 gap-6 items-stretch">
       {/* Completion balance chart */}
-      <div className="col-span-6">
+      <div className="col-span-6 h-full">
         <CompletionBalanceChart />
       </div>
       
       {/* Apartments over time chart */}
-      <div className="col-span-6">
+      <div className="col-span-6 h-full">
         <ApartmentsOverTimeChart />
       </div>
     </div>

@@ -59,7 +59,7 @@ const Classifier = () => {
       <div className="bg-white p-4 rounded-lg shadow max-w-md">
         <h3 className="text-lg font-semibold mb-4">Daten importieren</h3>
         <label className="block text-sm font-medium">
-          BIM-Modell.xlsx
+          BIM-Modell
           <input type="file" accept=".xlsx" className="hidden" onChange={(e)=>{ setModelFile(e.target.files[0]); handleExcelUpload(e);} } />
           <div className="mt-2 flex items-center gap-2 border rounded px-2 py-1 cursor-pointer bg-gray-50 hover:bg-gray-100">
             <span className="bg-gray-900 text-white px-3 py-1 rounded">Durchsuchen</span>

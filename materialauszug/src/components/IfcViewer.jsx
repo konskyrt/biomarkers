@@ -19,7 +19,7 @@ import Stats from "stats.js";
 
 // BUI.Manager.init();
 
-const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
+const IfcViewer = ({ ifcFile }) => {
   const containerRef = useRef();
   const rendererRef = useRef();
   const sceneRef = useRef();
@@ -40,7 +40,6 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
   const worldRef = useRef(null);
 
   const [fragments, setFragments] = useState(false);
-  const [hiddenCats, setHiddenCats] = useState(new Set());
 
   useEffect(() => {
     // Initialize fragments library
@@ -75,36 +74,41 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
   }, []);
 
   const disposeWorld = () => {
-    if (worldRef.current) {
-      worldRef.current.dispose();
-      worldRef.current = null;
-    }
-    if (rendererRef.current) {
-      rendererRef.current.dispose();
+
+    // dispose fragments
+    const ids = getModelsIds();
+    for (const id of ids) fragmentsRef.current?.disposeModel(id);
+    console.log(sceneRef.current?.dispose, rendererRef.current?.dispose, ids)
+    sceneRef.current?.dispose();
+    rendererRef.current?.dispose();
+    // dispose renderer
+    if (worldRef.current.renderer) {
+      world.renderer.renderer.dispose();
+      if (world.renderer.renderer.domElement?.parentNode) {
+        world.renderer.renderer.domElement.parentNode.removeChild(world.renderer.renderer.domElement);
+      }
       rendererRef.current = null;
     }
-  };
-
-  // Clean-up when component unmounts (e.g., changing tabs)
-  useEffect(() => {
-    return () => {
-      try {
-        disposeWorld();
-        // remove any event listeners on components
-        if (componentsRef.current) {
-          componentsRef.current.dispose?.();
-          componentsRef.current = null;
+    // dispose scene
+    if (worldRef.current.scene) {
+      // Dispose materials and geometries
+      sceneRef.current?.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach((mat) => mat.dispose());
+          } else {
+            object.material.dispose();
+          }
         }
-        if (fragmentsRef.current) {
-          fragmentsRef.current.dispose?.();
-          fragmentsRef.current = null;
-        }
-      } catch (e) {
-        console.warn('Error disposing viewer', e);
-      }
-    };
-  }, []);
+        if (object.texture) object.texture.dispose?.();
+      });
+      sceneRef.current = null;
+    }
 
+    worldRef.current.dispose();
+    worldRef.current = null;
+  }
   // Initialize the 3D scene
   useEffect(() => {
     try {
@@ -292,28 +296,6 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
     }
   }, [ifcFile]);
 
-  // React to hiddenCategories prop to toggle visibility per IFC type
-  useEffect(() => {
-    if (!componentsRef.current) return;
-    const fragmentsManager = componentsRef.current.get?.(OBC.FragmentsManager);
-    if (!fragmentsManager || typeof fragmentsManager.getAllItemsOfModelByType !== 'function') return;
-
-    for (const model of fragmentsManager.models.list.values()) {
-      const modelId = model.modelId;
-      const idsMap = getIdsByType(fragmentsManager, modelId);
-
-      // First show everything
-      for (const ids of Object.values(idsMap)) {
-        fragmentsManager.showItems(modelId, ids);
-      }
-
-      // Then hide selected categories
-      hiddenCategories.forEach((cat) => {
-        const ids = idsMap?.[cat] ?? [];
-        if (ids.length) fragmentsManager.hideItems(modelId, ids);
-      });
-    }
-  }, [hiddenCategories]);
 
   const clearExistingModel = () => {
     if (sceneRef.current) {
@@ -374,8 +356,6 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
 
       try {
         // Show progress
-        const fragmentsManager = componentsRef.current?.get?.(OBC.FragmentsManager);
-        // show progress
 
         // Process with progress updates
         const fragmentsData = await serializer.process({
@@ -406,135 +386,43 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
             // Load model directly from buffer data
             const isIfcModel = true;
             if (isIfcModel) {
-              const model = fragmentsManager.load(fragmentsData, { modelId });
-              sceneRef.current.three.add(model);
+              const model = await fragmentsRef.current?.load(fragmentsData, { modelId });
+              exportFragment(modelId, fragmentsData);
+              sceneRef.current.three.add(model.object);
+              const fragmentBbox = componentsRef.current.get(OBC.BoundingBoxer);
+              // console.log("#############", model, model._bbox, fragmentBbox);
               console.log("fragmentsData", fragmentsData, model);
+              model.useCamera(cameraRef.current.three);
 
-              // Use classifier to get entity categories
-              try {
-                const classifier = componentsRef.current?.get?.(OBC.Classifier);
-                if (classifier && typeof classifier.byEntity === 'function') {
-                  await classifier.byEntity(model);
-                  const typeKeys = Object.keys(classifier.list?.entities || {});
-                  console.log('Detected IFC types via Classifier:', typeKeys);
-                  if (onTypesDetected) {
-                    onTypesDetected(typeKeys);
-                  }
-                }
-              } catch (clfErr) {
-                console.warn('Classifier detection failed', clfErr);
-              }
-
-              // Camera Fit based on computed bounding box
+              // Camera Fit
               {
-                const bbox = new THREE.Box3().setFromObject(model);
-                const center = bbox.getCenter(new THREE.Vector3());
-                const size = bbox.getSize(new THREE.Vector3());
-                const geometry = new THREE.BoxGeometry(size.x || 1, size.y || 1, size.z || 1);
-                const material = new THREE.MeshBasicMaterial({ visible: false });
+                const center = model._bbox.getCenter(new THREE.Vector3());  // Center of the bounding box
+                const size = model._bbox.getSize(new THREE.Vector3()); // Size of the bounding box
+                const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
                 const boxMesh = new THREE.Mesh(geometry, material);
                 boxMesh.position.copy(center);
                 cameraRef.current.controls.fitToBox(boxMesh, true);
+                // cameraRef.current.controls.zoomTo(1);
               }
 
-              // ensure manager state updated (some versions don't need this)
-              if (typeof fragmentsManager.update === 'function') {
-                await fragmentsManager.update(true);
-              }
+              
+              // highlight
+              // const highlighter = componentsRef.current.get(OBCF.Highlighter);
+              // highlighter.setup({ world: worldRef.current });
 
-              // Collect types from all loaded fragment models if manager not ready
-              let detectedTypes = [];
-              if (!fragmentsManager) {
-                const allModels = fragmentsRef.current?.models?.list?.values?.();
-                if (allModels) {
-                  const typeSet = new Set();
-                  for (const m of allModels) {
-                    for (const it of m.items ?? []) {
-                      typeSet.add(it.type || it.ifcType || 'Unknown');
-                    }
-                  }
-                  detectedTypes = [...typeSet];
-                }
-              }
-
-              // send types up if callback provided
-              if (onTypesDetected) {
-                let idsMapLocal;
-                if (fragmentsManager) {
-                  // normal path (newer library)
-                  idsMapLocal = getIdsByType(fragmentsManager, modelId);
-                  if (!Object.keys(idsMapLocal).length && detectedTypes.length) {
-                    detectedTypes.forEach((t)=>(idsMapLocal[t]=[0]));
-                  }
-                } else {
-                  // fallback: we already collected the distinct types into detectedTypes
-                  idsMapLocal = {};
-                  detectedTypes.forEach((t) => (idsMapLocal[t] = [0]));
-                }
-                const typeList = Object.keys(idsMapLocal);
-                console.log('Detected IFC types:', typeList);
-                onTypesDetected(typeList);
-              }
-
-              if (model) {
-                console.log('Fragments model keys:', Object.keys(model));
-                if (Array.isArray(model.items) && model.items.length) {
-                  console.log('First fragment item:', model.items[0]);
-                  console.log('First fragment item keys:', Object.keys(model.items[0] ?? {}));
-                }
-                if (model.categories) {
-                  console.log('Model categories field:', model.categories);
-                }
-                if (model._itemsManager) {
-                  console.log('_itemsManager keys:', Object.keys(model._itemsManager));
-                  if (model._itemsManager.items) {
-                    console.log('itemsManager.items sample:', model._itemsManager.items[0]);
-                  }
-                }
-                if (model._dataManager) {
-                  console.log('_dataManager keys:', Object.keys(model._dataManager));
-                }
-
-                // If the serializer provided properties, set them so Classifier can work
-                if (fragmentsData?.properties || fragmentsData?.props) {
-                  try {
-                    const propsObj = fragmentsData.properties ?? fragmentsData.props;
-                    if (propsObj && typeof model.setLocalProperties === 'function') {
-                      model.setLocalProperties(propsObj);
-                    }
-                  } catch (pErr) {
-                    console.warn('Failed setting local properties', pErr);
-                  }
-                }
-
-                // Dump properties of first two items for inspection
-                const itemArr = model.items || model._itemsManager?.items || [];
-                itemArr.slice(0, 2).forEach((itm, idx) => {
-                  console.log(`--- Sample fragment item #${idx}`);
-                  console.log('Raw item:', itm);
-                  if (itm.ifcMetadata) {
-                    console.log('ifcMetadata:', itm.ifcMetadata);
-                  }
-                  // show any attached properties via model._properties map
-                  const pid = itm.expressID ?? itm.id;
-                  if (pid !== undefined && model._properties && model._properties[pid]) {
-                    console.log('Attached properties (model._properties):', model._properties[pid]);
-                  }
-                });
-              }
+              await fragmentsRef.current?.update(true);
             } else {
               // frag model
               // await exportFragment(modelId, fragmentsData);
 
               // 
-              const model = fragmentsManager.load(fragmentsData);
+              const fragments = componentsRef.current.get(OBC.FragmentsManager);
+              const model = fragments.load(fragmentsData);
               sceneRef.current.three.add(model);
-              console.log(model, fragmentsManager)
+              console.log(model, fragments)
 
-              if (onTypesDetected && fragmentsManager) {
-                const idsMap2 = getIdsByType(fragmentsManager, modelId);
-                onTypesDetected(Object.keys(idsMap2));
-              }
+              // await fragmentsRef.current?.update(false);
 
               // 🖼️ Getting the plans
               // const plans = componentsRef.current.get(OBCF.Plans);
@@ -542,10 +430,6 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
               // await plans.generate(model);
             }
 
-            if (onTypesDetected && fragmentsManager) {
-              const idsMap = getIdsByType(fragmentsManager, modelId);
-              onTypesDetected(Object.keys(idsMap));
-            }
 
             setIsLoading(false);
             setIsIfcLoaded(true);
@@ -706,84 +590,12 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
     }
   };
 
-  // Demo: toggle visibility of all IfcDoor elements
-  const handleFilter = async () => {
-    if (!fragmentsRef.current || !fragmentsRef.current.models) return;
-
-    // take first model (extend for multi-model later)
-    const first = fragmentsRef.current.models.list.values().next().value;
-    if (!first) return;
-    const modelId = first.modelId;
-
-    // Category we toggle – hard-coded demo
-    const category = 'IfcDoor';
-
-    const newSet = new Set(hiddenCats);
-
-    // Try via fragmentsManager (preferred)
-    const fragmentsManager = componentsRef.current?.get?.(OBC.FragmentsManager);
-
-    if (fragmentsManager && typeof fragmentsManager.getAllItemsOfModelByType === 'function') {
-      const idsMap = getIdsByType(fragmentsManager, modelId);
-      const ids = idsMap?.[category] ?? [];
-      if (ids.length) {
-        if (hiddenCats.has(category)) {
-          fragmentsManager.showItems(modelId, ids);
-          newSet.delete(category);
-        } else {
-          fragmentsManager.hideItems(modelId, ids);
-          newSet.add(category);
-        }
-        setHiddenCats(newSet);
-        return;
-      }
-    }
-
-    // Fallback: toggle visibility of whole model group
-    const obj = first.object || first.three || null;
-    if (obj) {
-      obj.visible = hiddenCats.has(category);
-      if (hiddenCats.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      setHiddenCats(newSet);
-    }
+  const handleFilter = () => {
+    // Placeholder for future filtering functionality
   };
 
   const toggleFloorplanNav = () => {
     setShowFloorplanNav(!showFloorplanNav);
-  };
-
-  const getIdsByType = (manager, modelId) => {
-    if (manager?.getAllItemsOfModelByType) return manager.getAllItemsOfModelByType(modelId);
-    // Fallback for older versions: build mapping manually
-    const mapping = {};
-    const modelsIter = manager?.models?.list?.values?.();
-    if (!modelsIter) return mapping;
-    for (const m of modelsIter) {
-      if (modelId && m.modelId !== modelId) continue;
-      for (const item of m.items ?? []) {
-        let type = item.ifcClass || item.ifcType || item.type || (item.ifcMetadata ? (item.ifcMetadata.entity || item.ifcMetadata.type || item.ifcMetadata.predefinedType) : undefined);
-        if (!type && item.ifcMetadata) {
-          const meta = item.ifcMetadata;
-          type = meta.entity || meta.type || (Array.isArray(meta.entities)? meta.entities[0]: undefined) || meta.category || meta.Name;
-        }
-        if (!type) {
-          // heuristic: find first string property that starts with 'IFC'
-          for (const k in item) {
-            const v = item[k];
-            if (typeof v === 'string' && v.toUpperCase().startsWith('IFC')) { type = v; break; }
-          }
-        }
-        type = type || 'Unknown';
-        const id   = item.expressID ?? item.id;
-        if (id === undefined) continue;
-        (mapping[type] ||= []).push(id);
-      }
-    }
-    return mapping;
   };
 
   return (
@@ -792,7 +604,7 @@ const IfcViewer = ({ ifcFile, hiddenCategories = [], onTypesDetected }) => {
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-medium">
             {isIfcLoaded ? 'IFC Model Viewer' : 'IFC Viewer'}
-            {error && <span className="text-red-500 text-sm ml-2">{typeof error === 'string' ? error : error.message || 'Error'}</span>}
+            {error && <span className="text-red-500 text-sm ml-2">{error}</span>}
           </h3>
           <div className="flex space-x-2">
             <button onClick={handleHome} className="p-1.5 rounded hover:bg-gray-100" title="Reset camera">

@@ -491,7 +491,7 @@ export default function MaterialAuszug() {
           <div className="bg-white p-4 rounded-lg shadow" style={{ height: '100%', overflowY: 'auto' }}>
             <h2 className="text-lg font-semibold mb-2">Daten importieren</h2>
             <FileInput
-              label="Komponenten-Klassen.xlsx"
+              label="Komponenten-Klassen"
               file={classesFile}
               onChange={(e)=>{ setClassesFile(e.target.files[0]); handleFileUpload(e);} }
             />

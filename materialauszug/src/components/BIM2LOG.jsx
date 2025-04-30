@@ -37,8 +37,8 @@ const BIM2LOG = () => {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">BIM2LOG</h2>
       <div className="bg-white p-4 rounded-lg shadow max-w-md space-y-4">
-        <FileInput label="Zeitplan.xlsx" file={timelineFile} setFile={setTimelineFile} />
-        <FileInput label="Bauteile.xlsx" file={elementsFile} setFile={setElementsFile} />
+        <FileInput label="Zeitplan" file={timelineFile} setFile={setTimelineFile} />
+        <FileInput label="Bauteile" file={elementsFile} setFile={setElementsFile} />
         <button onClick={handleStart} disabled={isProcessing || !timelineFile || !elementsFile} className="w-full py-2 bg-gray-900 text-white rounded disabled:opacity-50">
           {isProcessing ? 'Verarbeite…' : 'Starten'}
         </button>

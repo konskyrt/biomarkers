@@ -19,25 +19,27 @@ const data = {
 };
 
 const options = {
+  responsive: true,
+  maintainAspectRatio: false,
   plugins: {
     legend: { position: 'right', labels: { boxWidth: 12, padding: 16 } },
     tooltip: {
       callbacks: {
         label: (ctx) => {
           const v = ctx.raw;
-          const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
-          const pct = ((v/total)*100).toFixed(1);
+          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+          const pct = ((v / total) * 100).toFixed(1);
           return `${v.toLocaleString()} (${pct}%)`;
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 };
 
 const CategoryPieChart = () => (
   <div className="bg-white shadow rounded-lg p-4">
     <h3 className="text-lg font-medium mb-4">Elemente nach Kategorie</h3>
-    <div className="h-64">
+    <div className="h-64 w-full">
       <Pie data={data} options={options} />
     </div>
   </div>
