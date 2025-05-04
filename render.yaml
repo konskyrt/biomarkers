@@ -1,10 +1,16 @@
 services:
-  - type: web
-    name: bim-data-dashboard       # must match the service Render already has
-    rootDir: materialauszug        # <─ NEW build directory
-    env: node
-    buildCommand: |
-      yarn install
-      yarn build                   # or npm ci && npm run build
-    startCommand: |
-      yarn start                   # or serve -s build, etc.
+  - name: dashboard-api
+    type: web
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+  - name: dashboard-legacy-ui
+    type: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: build
+  - name: dashboard-materialauszug
+    type: static          # or web if it needs SSR
+    rootDir: materialauszug
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist   # change to your actual directory
