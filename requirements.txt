@@ -1,6 +1,10 @@
-Flask==2.3.2
-flask_cors==5.0.1
-ifcopenshell==0.8.1.post1
-numpy==2.2.5
-pandas==2.0.3
-scikit_learn==1.1.2
+Flask
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.0
+openpyxl
+gunicorn
+gevent>=1.4
+ifcopenshell
+flask_cors
+scikit-learn==1.4.2
