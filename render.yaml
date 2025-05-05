@@ -1,16 +1,21 @@
 services:
+  # ─── backend API ─────────────────────────────────
   - name: dashboard-api
     type: web
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app
+
+  # ─── legacy React UI (still uses npm) ───────────
   - name: dashboard-legacy-ui
     type: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: build
+    staticPublishPath: build          # CRA outputs build/
+
+  # ─── new React UI (uses Yarn) ───────────────────
   - name: dashboard-materialauszug
-    type: static          # or web if it needs SSR
+    type: static
     rootDir: materialauszug
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist   # change to your actual directory
+    buildCommand: yarn install --frozen-lockfile && yarn build
+    staticPublishPath: build          # react-scripts outputs build/
