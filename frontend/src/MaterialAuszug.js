@@ -4,6 +4,8 @@ import RGL, { WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import DashboardItem from './DashboardItem';
+import ProgressOverview from './components/ProgressOverview';
+import BauteileDashboard from './components/BauteileDashboard';
 import './MaterialAuszug.css';
 
 // Three.js imports
@@ -31,9 +33,9 @@ ChartJS.register(ArcElement, CategoryScale, LinearScale, Tooltip, Legend);
 const ReactGridLayout = WidthProvider(RGL);
 
 // Map prefixes to display names
-const gewerkeMap = { SN: 'Sanitär', EL: 'Elektro', SPR: 'Sprinkler', HZ: 'Heizung', KT: 'Kälte', LF: 'Lüftung' };
+const gewerkeMap = { KO: 'Konstruktion', SN: 'Sanitär', EL: 'Elektro', SPR: 'Sprinkler', HZ: 'Heizung', KT: 'Kälte', LF: 'Lüftung' };
 // Colors per Gewerk
-const gewerkeColors = { SN: '#2196F3', EL: '#FF9800', SPR: '#E91E63', HZ: '#F44336', KT: '#00BCD4', LF: '#4CAF50', Alle: '#757575' };
+const gewerkeColors = { KO: '#9E9E9E', SN: '#2196F3', EL: '#FF9800', SPR: '#E91E63', HZ: '#F44336', KT: '#00BCD4', LF: '#4CAF50', Alle: '#757575' };
 
 const serializer = new IfcImporter();
 // const serializer = new FragmentSerializer();
@@ -195,6 +197,211 @@ const unitCostMap = {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Detailed catalogue prices (complete)
+// ---------------------------------------------------------------------------
+const bauteilPrices = {
+  // Konstruktion
+
+  // Sanitär (SN)
+  'SN.01': { unit: 'm',     price: 75 },
+  'SN.02': { unit: 'Stück', price: 35 },
+  'SN.03': { unit: 'Stück', price: 25 },
+  'SN.04': { unit: 'Stück', price: 25 },
+  'SN.05': { unit: 'Stück', price: 120 },
+  'SN.06': { unit: 'Stück', price: 3500 },
+  'SN.07': { unit: 'Stück', price: 2200 },
+  'SN.08': { unit: 'Stück', price: 6800 },
+  'SN.09': { unit: 'Stück', price: 250 },
+  'SN.10': { unit: 'Stück', price: 300 },
+  'SN.11': { unit: 'Stück', price: 260 },
+  'SN.12': { unit: 'Stück', price: 150 },
+
+  // Elektro (EL)
+  'EL.01': { unit: 'm',     price: 45 },
+  'EL.02': { unit: 'Stück', price: 30 },
+  'EL.03': { unit: 'm',     price: 12 },
+  'EL.04': { unit: 'm',     price: 85 },
+  'EL.05': { unit: 'Stück', price: 40 },
+  'EL.06': { unit: 'Stück', price: 40 },
+  'EL.07': { unit: 'Stück', price: 150 },
+  'EL.08': { unit: 'Stück', price: 25 },
+  'EL.09': { unit: 'Stück', price: 30 },
+  'EL.10': { unit: 'Stück', price: 600 },
+
+  // Sprinkler (SPR)
+  'SPR.01': { unit: 'Stück', price: 18 },
+  'SPR.02': { unit: 'm',     price: 90 },
+  'SPR.03': { unit: 'Stück', price: 35 },
+  'SPR.04': { unit: 'Stück', price: 40 },
+  'SPR.05': { unit: 'Stück', price: 450 },
+  'SPR.06': { unit: 'Stück', price: 3500 },
+  'SPR.07': { unit: 'Stück', price: 1200 },
+  'SPR.08': { unit: 'Stück', price: 550 },
+  'SPR.09': { unit: 'Stück', price: 220 },
+
+  // Heizung (HZ)
+  'HZ.01': { unit: 'Stück', price: 15000 },
+  'HZ.02': { unit: 'Stück', price: 6500 },
+  'HZ.03': { unit: 'Stück', price: 1800 },
+  'HZ.04': { unit: 'm',     price: 80 },
+  'HZ.05': { unit: 'Stück', price: 40 },
+  'HZ.06': { unit: 'Stück', price: 30 },
+  'HZ.07': { unit: 'Stück', price: 32 },
+  'HZ.08': { unit: 'Stück', price: 70 },
+  'HZ.09': { unit: 'Stück', price: 600 },
+  'HZ.10': { unit: 'Stück', price: 450 },
+  'HZ.11': { unit: 'Stück', price: 1200 },
+
+  // Kälte (KT)
+  'KT.01': { unit: 'Stück', price: 20000 },
+  'KT.02': { unit: 'Stück', price: 18000 },
+  'KT.03': { unit: 'Stück', price: 3000 },
+  'KT.04': { unit: 'm',     price: 110 },
+  'KT.05': { unit: 'Stück', price: 55 },
+  'KT.06': { unit: 'Stück', price: 45 },
+  'KT.07': { unit: 'Stück', price: 45 },
+  'KT.08': { unit: 'Stück', price: 90 },
+  'KT.09': { unit: 'Stück', price: 600 },
+  'KT.10': { unit: 'Stück', price: 1500 },
+
+  // Lüftung (LF)
+  'LF.01': { unit: 'Stück', price: 28000 },
+  'LF.02': { unit: 'Stück', price: 3500 },
+  'LF.03': { unit: 'm',     price: 95 },
+  'LF.04': { unit: 'Stück', price: 50 },
+  'LF.05': { unit: 'Stück', price: 55 },
+  'LF.06': { unit: 'Stück', price: 45 },
+  'LF.07': { unit: 'Stück', price: 120 },
+  'LF.08': { unit: 'Stück', price: 28 },
+  'LF.09': { unit: 'Stück', price: 32 },
+  'LF.10': { unit: 'Stück', price: 900 },
+  'LF.11': { unit: 'Stück', price: 4500 },
+  'LF.12': { unit: 'Stück', price: 180 },
+  'LF.13': { unit: 'm²',    price: 20 },
+
+  // Catch-all
+};
+
+const bauteilNames = {
+  // Sanitär
+    "KO": "Konstruction, Gebäude",
+
+    "SN": "Sanitär",
+    "SN.01": "Wasserrohr (gerades Segment)",
+    "SN.02": "Rohrarmaturen (Reduzierungen, Kupplungen)",
+    "SN.03": "Rohrarmaturen: Bögen",
+    "SN.04": "Rohrarmaturen: T-Stücke",
+    "SN.05": "Ventile (Absperr-, Rückfluss-, Druckminderventile etc.)",
+    "SN.06": "Boosterpumpe (Druckerhöhungspumpe)",
+    "SN.07": "Wassertank (Speicher-/Ausdehnungsbehälter)",
+    "SN.08": "Warmwassererzeuger (Kessel/Calorifier)",
+    "SN.09": "Waschtisch (Waschbecken)",
+    "SN.10": "Toilette (WC/Water Closet)",
+    "SN.11": "Urinal",
+    "SN.12": "Bodenablauf (Ablauföffnung)",
+    
+    "EL": "EL",
+    "EL.01": "Leerrohr/Kabelschutzrohr",
+    "EL.02": "Leerrohrzubehör (Bögen, T-Stücke)",
+    "EL.03": "Elektrokabel / Draht",
+    "EL.04": "Kabeltrasse",
+    "EL.05": "Kabeltrassenzubehör: Bögen",
+    "EL.06": "Kabeltrassenzubehör: T-Stücke",
+    "EL.07": "Beleuchtungskörper (Leuchte)",
+    "EL.08": "Schalter",
+    "EL.09": "Steckdose (Rezeptacle/Outlet)",
+    "EL.10": "Verteilerkasten (Schaltschranksystem)",
+    
+    "SPR": "Sprinkler (Brandschutz)",
+    "SPR.01": "Sprinklerkopf",
+    "SPR.02": "Sprinklerrohr",
+    "SPR.03": "Sprinklerzubehör: Bögen",
+    "SPR.04": "Sprinklerzubehör: T-Stücke",
+    "SPR.05": "Alarm-/Steuerarmatur",
+    "SPR.06": "Brandschutzpumpe",
+    "SPR.07": "Jockey-Pumpe",
+    "SPR.08": "Feuerwehranschluss",
+    "SPR.09": "Rückflussverhinderer",
+    
+    "HZ": "Heizung",
+    "HZ.01": "Kessel (Heizunggerät)",
+    "HZ.02": "Wärmetauscher",
+    "HZ.03": "Umwälzpumpe (Heizungspumpe)",
+    "HZ.04": "Heizungsrohre (Vorlauf & Rücklauf)",
+    "HZ.05": "Rohrarmaturen (Heizungsinstallation)",
+    "HZ.06": "Heizfittings: Bögen",
+    "HZ.07": "Heizfittings: T-Stück",
+    "HZ.08": "Ventile (Heizsventile)",
+    "HZ.09": "Ausdehnungsgefäß (Heizung)",
+    "HZ.10": "Heizkörper / Konvektoren",
+    "HZ.11": "FanCoil-Gerät",
+    
+    "KT": "Kälte",
+    "KT.01": "Kühler (Wasserkühler/Chiller)",
+    "KT.02": "Kühlturm",
+    "KT.03": "Kaltwasserpumpe",
+    "KT.04": "Kaltwasserrohre",
+    "KT.05": "Rohrarmaturen (Kaltwassersystem)",
+    "KT.06": "Kältefittings: Bögen",
+    "KT.07": "Kältefittings: T-Stück",
+    "KT.08": "Ventile (Kaltwassersystem)",
+    "KT.09": "Ausdehnungsgefäß (Kaltwassersystem)",
+    "KT.10": "FanCoil-Gerät (Kühlung)",
+    
+    "LF": "Lüftung",
+    "LF.01": "Lüftungsgerät / AHU (Air Handling Unit)",
+    "LF.02": "Ventilator (Lüftungsventilator)", 
+    "LF.03": "Luftkanal (gerades Segment)",
+    "LF.04": "Luftfittings: Bögen",
+    "LF.05": "Luftfittings: T-Stücke",
+    "LF.06": "Drosselklappen (Luftstromdrossler)",
+    "LF.07": "Luftschalldämpfer (Akustikabsorber)",
+    "LF.08": "Luftfilter",
+    "LF.09": "Luftauslass (Diffusor/Grill)",
+    "LF.10": "VAV-Endgerät (Variable Air Volume Box)",
+    "LF.11": "Wärmerückgewinnungsgerät",
+    "LF.12": "Befeuchter",
+    "LF.13": "Lüftungdämmung",
+
+    "OTH": "Other"
+
+};
+
+// ---------------------------------------------------------------------------
+
+// helper to compute cost per row using catalogue or fallback
+function computeItemCost(row){
+  const short = (row['label code']||'').split('.').slice(0,2).join('.');
+  const cat = bauteilPrices[short];
+  if(cat){
+    if(cat.unit==='m'){
+      const len = Number(row.Length)||0; return cat.price * len/1000;
+    }
+    return cat.price;
+  }
+  // fallback: zero
+  return 0;
+}
+
+// Reference project budget (planned costs) for comparison in CHF
+const projectBudget = {
+  'Heizung': 2260277,
+  'Kälte': 0,          // combined under Heizung/Kälte, split unknown
+  'Lüftung': 1162500,  // Lüftung/Klima
+  'Sanitär': 1918500,
+  'Elektro': 2656105,
+  Honorar: 809558      // Overall planning fee
+};
+
+// Basic project meta-data rendered above KPI
+const projectInfo = {
+  'Projektbezeichnung': '11565.01 - Salathe Arlesheim',
+  'Planungsart': 'GTD',
+  'Nutzung': 'Mehrfamilienhäuser',
+  'Honorar': 'CHF 809.558,00'
+};
+
 export default function MaterialAuszug() {
   // Spreadsheet state & filters
   const [data, setData] = useState([]);
@@ -210,6 +417,9 @@ export default function MaterialAuszug() {
   const [expandedBauteile, setExpandedBauteile] = useState(false);
   const [expandedLegend, setExpandedLegend] = useState(false);
   const [expandedBarcharts, setExpandedBarcharts] = useState(false);
+  
+  // Track dropdown overlay position for legend
+  const [legendOverlayPos, setLegendOverlayPos] = useState({ top: 0, left: 0 });
   
   // Refs for positioning dropdowns
   const kategorienRef = useRef(null);
@@ -481,12 +691,8 @@ export default function MaterialAuszug() {
     // Get unique component names
     const allBauteile = [...new Set(filtered.map(r => r['label name']).filter(x => x))];
     
-    // Filter out items that match gewerk names from the general categories
-    const gewerkeNames = Object.values(gewerkeMap);
-    return allBauteile
-      .filter(name => !gewerkeNames.some(gewerkName => 
-        name.includes(gewerkName) || name.includes('general')))
-      .sort();
+    // Return full list without excluding names containing Gewerk display names or 'general'
+    return allBauteile.sort();
   }, [filtered]);
 
   // Compute component details
@@ -586,39 +792,17 @@ export default function MaterialAuszug() {
         gewerkCosts[code] = 0;
       });
       
-      // Calculate costs for each item based on its Gewerk and type
+      // Use catalogue prices (computeItemCost) for consistency with the single-Gewerk view.
+      // Any item that does not have a catalogue price (computeItemCost === 0) is ignored,
+      // mirroring the behaviour in the detailed Gewerk breakdown where such items are skipped.
       filtered.forEach(item => {
         const gewerkCode = (item['label code'] || '').split('.')[0];
         if (!gewerkCode || !relevantGewerke.includes(gewerkCode)) return;
-        
-        // Get item type to determine unit cost
-        let itemType = 'default';
-        if (/rohr|pipe|leitung|wasserrohr/i.test(item['label name'])) {
-          itemType = 'Rohr';
-        } else if (/T-Stück|T-piece/i.test(item['label name'])) {
-          itemType = 'T-Stück';
-        } else if (/bogen|bend|bögen|curve|elbow/i.test(item['label name'])) {
-          itemType = 'Bögen';
-        } else if (/Ventil|valve/i.test(item['label name'])) {
-          itemType = 'Ventil';
-        } else if (/Kabeltrasse|cable tray/i.test(item['label name'])) {
-          itemType = 'Kabeltrasse';
-        } else if (/Pumpe|pump/i.test(item['label name'])) {
-          itemType = 'Pumpe';
+
+        const itemCost = computeItemCost(item);
+        if (itemCost > 0) {
+          gewerkCosts[gewerkCode] += itemCost;
         }
-        
-        // Get the unit cost for this item type in this Gewerk
-        const gewerkCostMap = unitCostMap[gewerkCode] || unitCostMap.default;
-        const unitCost = gewerkCostMap[itemType] || gewerkCostMap.default;
-        
-        // Calculate item cost (for pipes, use length; for others use count)
-        let itemCost = unitCost;
-        if (itemType === 'Rohr' && item.Length) {
-          itemCost = unitCost * (Number(item.Length) / 1000); // Convert mm to m
-        }
-        
-        // Add to Gewerk total
-        gewerkCosts[gewerkCode] += itemCost;
       });
       
       // Format results for display
@@ -645,65 +829,39 @@ export default function MaterialAuszug() {
     else if (gew !== 'Alle') {
       const summary = [];
       const gewerkPrefix = gew;
-      const gewerkCostMap = unitCostMap[gewerkPrefix] || unitCostMap.default;
-      
-      // Group components using the same logic as in details
-      const componentTypes = {
-        'Rohr': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /rohr|pipe|leitung|wasserrohr/i.test(r['label name']);
-        }),
-        'T-Stück': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /T-Stück|T-piece/i.test(r['label name']);
-        }),
-        'Bögen': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /bogen|bend|bögen|curve|elbow/i.test(r['label name']);
-        }),
-        'Ventil': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /Ventil|valve/i.test(r['label name']);
-        }),
-        'Kabeltrasse': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /Kabeltrasse|cable tray/i.test(r['label name']);
-        }),
-        'Pumpe': filtered.filter(r => {
-          const labelCode = (r['label code'] || '').split('.')[0];
-          return labelCode === gewerkPrefix && /Pumpe|pump/i.test(r['label name']);
-        }),
-      };
-      
-      // Calculate costs for each component type
-      Object.entries(componentTypes).forEach(([type, items]) => {
-        if (items.length > 0) {
-          const unitCost = gewerkCostMap[type] || gewerkCostMap.default;
-          
-          if (type === 'Rohr') {
-            const len = items.reduce((s,r)=>s+(Number(r.Length)||0),0) / 1000; // mm to m
-            const totalCost = unitCost * len;
-            summary.push({ 
-              label: type, 
-              value: `${items.length} Stück, ${len.toFixed(1)} m`,
-              unitCost: `${unitCost.toFixed(1)} CHF/m`,
-              totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`
-            });
-          } else {
-            const totalCost = unitCost * items.length;
-            summary.push({ 
-              label: type, 
-              value: `${items.length} Stück`,
-              unitCost: `${unitCost.toFixed(1)} CHF/Stück`,
-              totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} CHF`
-            });
-          }
-        }
+
+      // Dynamic grouping by two-part code
+      const groups = {};
+      filtered.forEach(r => {
+        const codeParts = (r['label code'] || '').split('.');
+        if (codeParts[0] !== gewerkPrefix) return;
+        const code2 = codeParts.slice(0,2).join('.');
+        if (!groups[code2]) groups[code2] = [];
+        groups[code2].push(r);
+      });
+
+      Object.entries(groups).forEach(([code2, items]) => {
+        const info = bauteilPrices[code2];
+        if (!info) return; // skip if no catalogue price
+
+        const unitDisplay = `${info.price.toFixed(1)} /${info.unit}`;
+        const totalCost = items.reduce((s,r)=>s+computeItemCost(r),0);
+
+        const valueStr = info.unit==='m'
+          ? `${items.length} Stück, ${(items.reduce((s,r)=>s+(Number(r.Length)||0),0)/1000).toFixed(1)} m`
+          : `${items.length} Stück`;
+
+        summary.push({
+          label: bauteilNames[code2] || code2,
+          value: valueStr,
+          unitCost: unitDisplay,
+          totalCost: `${totalCost.toLocaleString('de-DE', { minimumFractionDigits:1, maximumFractionDigits:1 })} CHF`
+        });
       });
       
       // Calculate total cost for this Gewerk
       let totalCost = summary.reduce((sum, item) => {
-        const cost = parseFloat(item.totalCost.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));
+        const cost = parseFloat(item.totalCost.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));            
         return sum + (isNaN(cost) ? 0 : cost);
       }, 0);
       
@@ -806,32 +964,44 @@ export default function MaterialAuszug() {
     // Prepare bar chart data for each Gewerk or for all in expanded mode
     const barCharts = {};
     
+    const MAX_VISIBLE_BARS = 4; // show this many individual bauteile, aggregate the rest as "Diverse"
+    
     if (gew === 'ExpandAll') {
-      // For ExpandAll mode, include all Gewerke even if not the selected filter
+      // Expanded mode: show the full list (no aggregation) for every Gewerk
       Object.entries(gewerkGroups).forEach(([code, data]) => {
         const sortedBauteile = Object.entries(data.bauteile)
-          .filter(([name]) => !Object.values(gewerkeMap).some(g => name.includes(g) || name.includes('general')))
           .sort((a, b) => b[1] - a[1]);
         
         barCharts[code] = {
           labels: sortedBauteile.map(([name]) => name),
           counts: sortedBauteile.map(([_, count]) => count),
+          extraCount: 0,
           isExpanded: true
         };
       });
     } else {
-      // Regular mode - only show the selected Gewerk's bar chart
+      // Normal mode – only the currently relevant Gewerk (or all when gew === 'Alle')
       Object.entries(gewerkGroups).forEach(([code, data]) => {
-        // Only include if it matches the filter or if filter is 'Alle'
         if (gew === 'Alle' || code === gew) {
           const sortedBauteile = Object.entries(data.bauteile)
-            .filter(([name]) => !Object.values(gewerkeMap).some(g => name.includes(g) || name.includes('general')))
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5); // Only take top 5 for non-expanded mode
+            .sort((a, b) => b[1] - a[1]);
+
+          const topBauteile = sortedBauteile.slice(0, MAX_VISIBLE_BARS);
+          const otherBauteile = sortedBauteile.slice(MAX_VISIBLE_BARS);
+
+          const otherCount = otherBauteile.reduce((sum, [, cnt]) => sum + cnt, 0);
+          const labels = topBauteile.map(([name]) => name);
+          const counts = topBauteile.map(([_, cnt]) => cnt);
+
+          if (otherCount > 0) {
+            labels.push('Diverse');
+            counts.push(otherCount);
+          }
           
           barCharts[code] = {
-            labels: sortedBauteile.map(([name]) => name),
-            counts: sortedBauteile.map(([_, count]) => count),
+            labels,
+            counts,
+            extraCount: otherBauteile.length,
             isExpanded: false
           };
         }
@@ -878,7 +1048,8 @@ export default function MaterialAuszug() {
     { i: 'lists',    x: 0, y: 8, w: 6, h: 6, static: true },
     { i: 'details',  x: 6, y: 8, w: 6, h: 6, static: true },
     { i: 'kpi-combined', x: 0, y: 14, w: 6, h: 6, static: true },
-    { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true }
+    { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true },
+    { i: 'progress', x: 0, y: 20, w: 12, h: 8, static: true }
   ];
 
   return (
@@ -886,8 +1057,8 @@ export default function MaterialAuszug() {
       <ReactGridLayout
         layout={layout}
         cols={12}
-        rowHeight={60}
-        width={1200}
+        rowHeight={50}
+        width={900}
       >
         <div key="viewer">
           <DashboardItem title="3D Viewer">
@@ -963,7 +1134,7 @@ export default function MaterialAuszug() {
                   <div className="select-group">
                     <label>Modelle</label>
                 <select value={mdl} onChange={e => setMdl(e.target.value)}>
-                  <option value="">Alle Modelle</option>
+                  <option value="">Alle</option>
                   {modelList.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
                   </div>
@@ -971,7 +1142,7 @@ export default function MaterialAuszug() {
                   <div className="select-group">
                     <label>Geschosse</label>
                 <select value={flr} onChange={e => setFlr(e.target.value)}>
-                  <option value="">Alle Geschosse</option>
+                  <option value="">Alle</option>
                   {floorList.map(f => <option key={f} value={f}>{f}</option>)}
                 </select>
               </div>
@@ -983,456 +1154,12 @@ export default function MaterialAuszug() {
 
         <div key="charts">
           <DashboardItem title="Bauteileverteilung">
-            <div className="charts-container">
-              {chartData ? (
-                <>
-                  <div className="circle-charts">
-                    <div style={{ 
-                      width: '100%',
-                      margin: '0 auto', 
-                      height: '200px',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      gap: '15px',
-                      marginBottom: '10px'
-                    }}>
-                      {/* Pie chart */}
-                      <div style={{ 
-                        flex: '0 0 220px',
-                        height: '200px', 
-                        position: 'relative'
-                      }}>
-                        <Pie
-                          data={chartData.pieChartData}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                display: false
-                              },
-                              tooltip: {
-                                callbacks: {
-                                  label: (tooltipItem) => {
-                                    const dataset = tooltipItem.dataset;
-                                    const total = dataset.data.reduce((sum, value) => sum + value, 0);
-                                    const currentValue = dataset.data[tooltipItem.dataIndex];
-                                    const percentage = ((currentValue / total) * 100).toFixed(2);
-                                    return `${tooltipItem.label}: ${percentage}% (${currentValue})`;
-                                  }
-                                }
-                              }
-                            },
-                            cutout: '70%'
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Legend - moved to the right */}
-                      <div style={{
-                        flex: '1',
-                        maxWidth: '300px',
-                        padding: '10px',
-                        overflowY: 'auto',
-                        height: '200px',
-                        border: '1px solid #eee',
-                        borderRadius: '4px',
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        position: 'relative'
-                      }}
-                      ref={legendRef}>
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}>
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '5px',
-                            paddingBottom: '5px',
-                            borderBottom: '1px solid #eee'
-                          }}>
-                            <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Legende</span>
-                            <button 
-                              onClick={() => setExpandedLegend(true)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: '#555',
-                                fontSize: '0.8rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '2px'
-                              }}
-                            >
-                              <span style={{ fontSize: '14px' }}>&#x2b;</span> Expand
-                            </button>
-                          </div>
-                          {chartData.pieChartData.labels.slice(0, 8).map((label, index) => (
-                            <div key={index} style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              fontSize: '0.85rem'
-                            }}>
-                              <span style={{
-                                width: '14px',
-                                height: '14px',
-                                backgroundColor: chartData.pieChartData.datasets[0].backgroundColor[index],
-                                display: 'inline-block',
-                                marginRight: '8px',
-                                borderRadius: '2px'
-                              }}></span>
-                              <span style={{
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}>
-                                {label}
-                              </span>
-                            </div>
-                          ))}
-                          {chartData.pieChartData.labels.length > 8 && (
-                            <div style={{ fontSize: '0.8rem', color: '#777', textAlign: 'center' }}>
-                              {chartData.pieChartData.labels.length - 8} weitere...
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Legend dropdown */}
-                        {expandedLegend && (
-                          <div className="dropdown-overlay" style={{
-                            top: '50px',
-                            left: '0',
-                            width: '300px'
-                          }}>
-                            <div className="dropdown-header">
-                              <span style={{ fontWeight: 'bold' }}>Bauteile Legende</span>
-                              <button className="close-button" onClick={() => setExpandedLegend(false)}>×</button>
-                            </div>
-                            <div className="dropdown-content">
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {chartData.pieChartData.labels.map((label, index) => (
-                                  <div key={index} style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    fontSize: '0.85rem',
-                                    padding: '4px 0'
-                                  }}>
-                                    <span style={{
-                                      width: '14px',
-                                      height: '14px',
-                                      backgroundColor: chartData.pieChartData.datasets[0].backgroundColor[index],
-                                      display: 'inline-block',
-                                      marginRight: '8px',
-                                      borderRadius: '2px'
-                                    }}></span>
-                                    <span>{label}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bar-charts-container" style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                    maxHeight: chartData?.isExpandedMode ? 'none' : '450px',
-                    overflowY: 'auto',
-                    marginTop: '0',
-                    position: 'relative'
-                  }}
-                  ref={barchartsRef}>
-                    <div style={{
-                      margin: '0 0 10px 0',
-                      padding: '0',
-                      fontSize: '1rem',
-                      borderBottom: '1px solid #eee',
-                      paddingBottom: '5px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <span>Gewerke Komponenten</span>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        {chartData?.isExpandedMode && (
-                          <span style={{ fontSize: '0.8rem', color: '#777' }}>Erweiterte Ansicht</span>
-                        )}
-                        {!chartData?.isExpandedMode && (
-                          <button 
-                            onClick={() => setExpandedBarcharts(true)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#555',
-                              fontSize: '0.8rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '2px'
-                            }}
-                          >
-                            <span style={{ fontSize: '14px' }}>&#x2b;</span> Expand
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Show more Gewerke in normal view */}
-                    {!expandedBarcharts && !chartData?.isExpandedMode && 
-                      Object.entries(chartData.barCharts).slice(0, 5).map(([code, data]) => (
-                        <div key={code} className="bar-chart-wrapper" style={{
-                          marginBottom: '8px',
-                          border: chartData?.isExpandedMode ? '1px solid #eee' : 'none',
-                          borderRadius: '4px',
-                          padding: chartData?.isExpandedMode ? '10px' : '0',
-                          backgroundColor: chartData?.isExpandedMode ? `${gewerkeColors[code]}10` : 'transparent'
-                        }}>
-                          <h5 style={{
-                            margin: '0 0 5px 0',
-                            fontSize: '0.9rem',
-                            color: gewerkeColors[code],
-                            borderBottom: chartData?.isExpandedMode ? `1px solid ${gewerkeColors[code]}30` : 'none',
-                            paddingBottom: chartData?.isExpandedMode ? '5px' : '0'
-                          }}>{gewerkeMap[code] || code}</h5>
-                          <div className="horizontal-bars" style={{
-                            height: 'auto'
-                          }}>
-                            {data.labels.slice(0, 4).map((label, index) => {
-                              const maxCount = Math.max(...data.counts);
-                              const percentage = (data.counts[index] / maxCount) * 100;
-                              
-                              return (
-                                <div key={label} className="bar-item" style={{
-                                  marginBottom: '4px',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }}>
-                                  <div className="bar-label" style={{
-                                    fontWeight: 'normal',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: '280px',
-                                    flex: '0 0 280px',
-                                    fontSize: '0.85rem',
-                                    paddingRight: '10px'
-                                  }}>{label}</div>
-                                  <div className="bar-wrapper" style={{
-                                    flex: '1',
-                                    height: '16px',
-                                    position: 'relative',
-                                    backgroundColor: '#f0f0f0',
-                                    borderRadius: '2px',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div 
-                                      className="bar-fill" 
-                                      style={{
-                                        width: `${percentage}%`,
-                                        backgroundColor: gewerkeColors[code],
-                                        height: '16px'
-                                      }}
-                                    ></div>
-                                    <span className="bar-value" style={{
-                                      position: 'absolute',
-                                      right: '5px',
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      fontSize: '0.8rem',
-                                      color: '#333',
-                                      zIndex: 2
-                                    }}>{data.counts[index]}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {data.labels.length > 4 && (
-                              <div style={{ fontSize: '0.8rem', color: '#777', textAlign: 'right', marginTop: '2px' }}>
-                                ...und {data.labels.length - 4} weitere
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    }
-                    
-                    {/* Bar charts dropdown */}
-                    {expandedBarcharts && !chartData?.isExpandedMode && (
-                      <div className="dropdown-overlay" style={{
-                        top: '40px',
-                        left: '0',
-                        width: '100%',
-                        maxHeight: '500px'
-                      }}>
-                        <div className="dropdown-header">
-                          <span style={{ fontWeight: 'bold' }}>Alle Gewerke Komponenten</span>
-                          <button className="close-button" onClick={() => setExpandedBarcharts(false)}>×</button>
-                        </div>
-                        <div className="dropdown-content">
-                          {Object.entries(chartData.barCharts).map(([code, data]) => (
-                            <div key={code} className="bar-chart-wrapper" style={{
-                              marginBottom: '15px',
-                              border: '1px solid #eee',
-                              borderRadius: '4px',
-                              padding: '10px',
-                              backgroundColor: `${gewerkeColors[code]}10`
-                            }}>
-                              <h5 style={{
-                                margin: '0 0 10px 0',
-                                fontSize: '0.9rem',
-                                color: gewerkeColors[code],
-                                borderBottom: `1px solid ${gewerkeColors[code]}30`,
-                                paddingBottom: '5px'
-                              }}>{gewerkeMap[code] || code}</h5>
-                              <div className="horizontal-bars" style={{
-                                height: 'auto'
-                              }}>
-                                {data.labels.map((label, index) => {
-                                  const maxCount = Math.max(...data.counts);
-                                  const percentage = (data.counts[index] / maxCount) * 100;
-                                  
-                                  return (
-                                    <div key={label} className="bar-item" style={{
-                                      marginBottom: '6px',
-                                      display: 'flex',
-                                      alignItems: 'center'
-                                    }}>
-                                      <div className="bar-label" style={{
-                                        fontWeight: 'normal',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        maxWidth: '280px',
-                                        flex: '0 0 280px',
-                                        fontSize: '0.85rem',
-                                        paddingRight: '10px'
-                                      }}>{label}</div>
-                                      <div className="bar-wrapper" style={{
-                                        flex: '1',
-                                        height: '16px',
-                                        position: 'relative',
-                                        backgroundColor: '#f0f0f0',
-                                        borderRadius: '2px',
-                                        overflow: 'hidden'
-                                      }}>
-                                        <div 
-                                          className="bar-fill" 
-                                          style={{
-                                            width: `${percentage}%`,
-                                            backgroundColor: gewerkeColors[code],
-                                            height: '16px'
-                                          }}
-                                        ></div>
-                                        <span className="bar-value" style={{
-                                          position: 'absolute',
-                                          right: '5px',
-                                          top: '50%',
-                                          transform: 'translateY(-50%)',
-                                          fontSize: '0.8rem',
-                                          color: '#333',
-                                          zIndex: 2
-                                        }}>{data.counts[index]}</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Full expanded view (not dropdown) */}
-                    {chartData?.isExpandedMode && 
-                      Object.entries(chartData.barCharts).map(([code, data]) => (
-                        <div key={code} className="bar-chart-wrapper" style={{
-                          marginBottom: '10px',
-                          border: chartData?.isExpandedMode ? '1px solid #eee' : 'none',
-                          borderRadius: '4px',
-                          padding: chartData?.isExpandedMode ? '10px' : '0',
-                          backgroundColor: chartData?.isExpandedMode ? `${gewerkeColors[code]}10` : 'transparent'
-                        }}>
-                          <h5 style={{
-                            margin: '0 0 10px 0',
-                            fontSize: '0.9rem',
-                            color: gewerkeColors[code],
-                            borderBottom: chartData?.isExpandedMode ? `1px solid ${gewerkeColors[code]}30` : 'none',
-                            paddingBottom: chartData?.isExpandedMode ? '5px' : '0'
-                          }}>{gewerkeMap[code] || code}</h5>
-                          <div className="horizontal-bars" style={{
-                            height: 'auto'
-                          }}>
-                            {data.labels.map((label, index) => {
-                              const maxCount = Math.max(...data.counts);
-                              const percentage = (data.counts[index] / maxCount) * 100;
-                              
-                              return (
-                                <div key={label} className="bar-item" style={{
-                                  marginBottom: '6px',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }}>
-                                  <div className="bar-label" style={{
-                                    fontWeight: 'normal',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: '280px',
-                                    flex: '0 0 280px',
-                                    fontSize: '0.85rem',
-                                    paddingRight: '10px'
-                                  }}>{label}</div>
-                                  <div className="bar-wrapper" style={{
-                                    flex: '1',
-                                    height: '16px',
-                                    position: 'relative',
-                                    backgroundColor: '#f0f0f0',
-                                    borderRadius: '2px',
-                                    overflow: 'hidden'
-                                  }}>
-                                    <div 
-                                      className="bar-fill" 
-                                      style={{
-                                        width: `${percentage}%`,
-                                        backgroundColor: gewerkeColors[code],
-                                        height: '16px'
-                                      }}
-                                    ></div>
-                                    <span className="bar-value" style={{
-                                      position: 'absolute',
-                                      right: '5px',
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      fontSize: '0.8rem',
-                                      color: '#333',
-                                      zIndex: 2
-                                    }}>{data.counts[index]}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </>
-              ) : (
-                <div className="no-data-message">
-                  <p>Laden Sie Daten, um Diagramme anzuzeigen</p>
-                </div>
-              )}
-            </div>
+            <BauteileDashboard
+              filtered={filtered}
+              gew={gew}
+              gewerkeMap={gewerkeMap}
+              gewerkeColors={gewerkeColors}
+            />
           </DashboardItem>
         </div>
 
@@ -1608,6 +1335,17 @@ export default function MaterialAuszug() {
                   <h3 style={{ margin: 0 }}>KPI - Planungskosten</h3>
                 </div>
                 <div className="kpi-content" style={{ height: 'calc(100% - 30px)', overflowY: 'auto' }}>
+                  {/* Project meta table */}
+                  <table style={{ width: '100%', marginBottom: '12px', fontSize: '0.9rem' }}>
+                    <tbody>
+                      {Object.entries(projectInfo).map(([key,val]) => (
+                        <tr key={key}>
+                          <td style={{ fontWeight: 'bold', padding: '4px 5px' }}>{key}</td>
+                          <td style={{ padding: '4px 5px' }}>{val}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                   {!costDetails ? (
                     <p>Bitte einen Gewerk auswählen</p>
                   ) : (
@@ -1617,14 +1355,17 @@ export default function MaterialAuszug() {
                           <tr style={{ background: '#f5f5f5' }}>
                             <th style={{ textAlign: 'left', padding: '5px' }}>Komponente</th>
                             <th style={{ textAlign: 'left', padding: '5px' }}>Menge</th>
-                            <th style={{ textAlign: 'left', padding: '5px' }}>Stückpreis</th>
+                            <th style={{ textAlign: 'left', padding: '5px' }}>Stückpreis in CHF</th>
                             <th style={{ textAlign: 'right', padding: '5px' }}>Kosten</th>
                           </tr>
                         )}
                         {gew === 'Alle' && (
                           <tr style={{ background: '#f5f5f5' }}>
                             <th style={{ textAlign: 'left', padding: '5px' }}>Gewerk</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Kosten</th>
+                            <th style={{ textAlign: 'right', padding: '5px' }}>Kosten (Ist)</th>
+                            <th style={{ textAlign: 'right', padding: '5px' }}>Budget</th>
+                            <th style={{ textAlign: 'right', padding: '5px' }}>Abweichung</th>
+                            <th style={{ textAlign: 'right', padding: '5px' }}>Honorar %</th>
                           </tr>
                         )}
                       </thead>
@@ -1673,68 +1414,61 @@ export default function MaterialAuszug() {
                                 fontWeight: gew === 'Alle' && !d.isTotal ? 'bold' : 'inherit',
                                 color: 'inherit' 
                               }}>
-                                {d.label}
+                                {d.isTotal ? 'Gesamt:' : d.label}
                               </td>
                               {gew !== 'Alle' ? (
                                 <>
                                   <td style={{ padding: '5px' }}>{d.value || ''}</td>
                                   <td style={{ padding: '5px' }}>{d.unitCost || ''}</td>
-                                  <td style={{ padding: '5px', position: 'relative' }}>
-                                    {d.isTotal ? (
-                                      <div style={{ textAlign: 'right', fontWeight: 'bold' }}>{d.value}</div>
-                                    ) : (
-                                      <div style={{ 
-                                        position: 'relative',
-                                        height: '24px',
-                                        paddingRight: '8px',
-                                        display: 'flex',
-                                        flexDirection: 'row-reverse',
-                                        alignItems: 'center'
-                                      }}>
-                                        {/* Cost value */}
-                                        <div style={{ 
-                                          width: '120px',
-                                          textAlign: 'right',
-                                          color: rowColor || 'inherit',
-                                          zIndex: 2,
-                                          marginLeft: '10px'
-                                        }}>{d.value}</div>
-                                        
-                                        {/* Bar container with fixed width */}
-                                        <div style={{
-                                          flex: 1,
-                                          height: '16px',
-                                          position: 'relative',
-                                          marginLeft: '40px' /* Add more space on the left */
-                                        }}>
-                                          {/* The actual bar */}
-                                          {maxValue > 0 && (
-                                            <div style={{ 
-                                              height: '100%',
-                                              width: `${Math.min(100, (currentValue / maxValue) * 150)}%`, /* Increase bar width by 50% */
-                                              backgroundColor: rowColor || '#ccc',
-                                              borderRadius: '0 2px 2px 0', /* Round only right corners */
-                                              opacity: 0.7,
-                                              position: 'absolute',
-                                              right: 0
-                                            }}></div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
+                                  <td style={{ padding: '5px', textAlign:'right', fontWeight: d.isTotal ? 'bold':'normal' }}>
+                                    {d.totalCost}
                                   </td>
                                 </>
                               ) : (
-                                <td style={{ padding: '8px 5px', textAlign: 'right' }}>
-                                  <div style={{ 
-                                    width: '120px', 
-                                    display: 'inline-block',
-                                    color: 'inherit',
-                                    fontWeight: d.isTotal ? 'bold' : 'normal'
-                                  }}>
+                                <>
+                                  {/* Ist-Kosten */}
+                                  <td style={{ padding: '8px 5px', textAlign: 'right', fontWeight: d.isTotal ? 'bold' : 'normal' }}>
                                     {d.value}
-                                  </div>
                                 </td>
+                                  {/* Budget */}
+                                  <td style={{ padding: '8px 5px', textAlign: 'right' }}>
+                                    {d.isTotal ? `${Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0).toLocaleString('de-DE')} CHF` : (projectBudget[d.label] ? `${projectBudget[d.label].toLocaleString('de-DE')} CHF` : '-')}
+                                  </td>
+                                  {/* Difference */}
+                                  <td style={{ padding: '8px 5px', textAlign: 'right', color: (() => {
+                                      const rowBudget = d.isTotal ? Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0) : projectBudget[d.label];
+                                      if(!rowBudget) return 'inherit';
+                                      const ist = parseFloat(d.value.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));
+                                      const diff = ist - rowBudget;
+                                      return diff > 0 ? '#d32f2f' : diff < 0 ? '#388e3c' : 'inherit';
+                                  })(), fontWeight: d.isTotal ? 'bold' : 'normal' }}>
+                                    {(() => {
+                                      const rowBudget2 = d.isTotal ? Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0) : projectBudget[d.label];
+                                      if(!rowBudget2) return d.isTotal ? '' : '-';
+                                      const ist = parseFloat(d.value.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));
+                                      const diff = ist - rowBudget2;
+                                      return `${diff>0?'+':''}${diff.toLocaleString('de-DE')} CHF`;
+                                    })()}
+                                  </td>
+                                  {/* Honorar percentage */}
+                                  <td style={{ padding: '8px 5px', textAlign: 'right' }}>
+                                    {(() => {
+                                      const honorar = projectBudget.Honorar || 0;
+                                      if (d.isTotal) {
+                                        // percentage against total budget of all gewerke
+                                        const totalBudget = Object.entries(projectBudget)
+                                          .filter(([key]) => key !== 'Honorar')
+                                          .reduce((sum,[,val])=>sum+val,0);
+                                        const pct = totalBudget ? (honorar / totalBudget * 100) : 0;
+                                        return `${pct.toFixed(1)} %`;
+                                      }
+                                      const budget = projectBudget[d.label];
+                                      if (!budget) return '-';
+                                      const pct = honorar / budget * 100;
+                                      return `${pct.toFixed(1)} %`;
+                                    })()}
+                                  </td>
+                                </>
                               )}
                             </tr>
                           );
@@ -1753,6 +1487,12 @@ export default function MaterialAuszug() {
             <div className="kpi-content" style={{ padding: '15px', height: '100%' }}>
               <p>Weitere KPI Daten werden hier angezeigt.</p>
             </div>
+          </DashboardItem>
+        </div>
+
+        <div key="progress">
+          <DashboardItem title="Fortschrittsübersicht">
+            <ProgressOverview />
           </DashboardItem>
         </div>
       </ReactGridLayout>

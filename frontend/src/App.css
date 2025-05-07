@@ -28,15 +28,22 @@ body {
 .sidebar {
   position: fixed;
   top: 0; left: 0;
-  width: 15%;
+  width: 60px;
   height: 100vh;
   background-color: #000;
   padding: 2rem 1rem;
+  transition: width 0.25s ease;
+  overflow: hidden;
 }
 
 .sidebar .logo-container {
+  display: none;
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.sidebar:hover .logo-container {
+  display: block;
 }
 
 .sidebar .logo {
@@ -51,23 +58,36 @@ body {
 .sidebar li {
   color: #fff;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   cursor: pointer;
   transition: opacity .2s;
   display: flex;
   align-items: center;
-  gap: .75rem;
+  justify-content: center; /* center when collapsed */
+  gap: .5rem;
+  font-size: 0.7rem;
 }
+
+/* when expanded, left align icon + label */
+.sidebar:hover li {
+  justify-content: flex-start;
+}
+
 .sidebar li:hover {
   opacity: .7;
 }
 
 /* 3) Main content wrapper */
 .main-content {
-  margin-left: 15%;
+  margin-left: 60px;
   padding: 2rem;
   min-height: 100vh;
   background-color: #F5F5F5; /* ensure it's gray behind each page */
+  transition: margin-left 0.25s ease;
+}
+
+.sidebar:hover ~ .main-content {
+  margin-left: 220px;
 }
 
 /* 4) Universal "card" style for every DashboardItem or .card */
@@ -210,16 +230,21 @@ table th {
   background-color: rgba(255,255,255,0.1);
 }
 .sidebar-icon {
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  flex-shrink: 0;
+  width: 16px !important;
+  height: 16px !important;
 }
 .sidebar li.active .sidebar-icon {
   opacity: 1;
 }
 .sidebar-label {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #fff;
+  display: none;
+}
+.sidebar:hover .sidebar-label {
+  display: inline;
 }
 
 /* ── Card‐title enlargement ── */
@@ -269,4 +294,9 @@ table th {
 .landing-page button {
   padding: 1rem 2rem;
   font-size: 1.1rem;
+}
+
+/* Collapsible sidebar */
+.sidebar:hover {
+  width: 220px;
 }

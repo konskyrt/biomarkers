@@ -946,7 +946,7 @@ export default function MaterialAuszug() {
                   <div className="select-group">
                     <label>Modelle</label>
                 <select value={mdl} onChange={e => setMdl(e.target.value)}>
-                  <option value="">Alle Modelle</option>
+                  <option value="">Alle</option>
                   {modelList.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
                   </div>
@@ -954,7 +954,7 @@ export default function MaterialAuszug() {
                   <div className="select-group">
                     <label>Geschosse</label>
                 <select value={flr} onChange={e => setFlr(e.target.value)}>
-                  <option value="">Alle Geschosse</option>
+                  <option value="">Alle</option>
                   {floorList.map(f => <option key={f} value={f}>{f}</option>)}
                 </select>
               </div>

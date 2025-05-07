@@ -80,6 +80,8 @@
     height: 100%;
     overflow-y: auto;
     gap: 1rem;
+    margin-left: 0;
+    padding-left: 0;
   }
   
   .circle-charts {
@@ -187,6 +189,7 @@
   .bar-chart-wrapper {
     border-top: 1px solid #eee;
     padding-top: 0.5rem;
+    width: 100%;
   }
   
   .bar-chart-wrapper h4 {
@@ -195,20 +198,22 @@
     color: #555;
   }
   
+  /* New bar chart layout */
   .horizontal-bars {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    width: 100%;
   }
   
   .bar-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: max-content 1fr;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
   
   .bar-label {
-    width: 40%;
     font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
@@ -216,7 +221,7 @@
   }
   
   .bar-wrapper {
-    flex: 1;
+    width: 100%;
     height: 20px;
     background-color: #f0f0f0;
     border-radius: 4px;
@@ -316,3 +321,39 @@
     border-bottom: 1px solid #ddd;
   }
   
+  /* universal text size inside cards & controls */
+  .material-auszug-dashboard .dashboard-item,
+  .material-auszug-dashboard .dashboard-item *,
+  .material-auszug-dashboard .controls *,
+  .material-auszug-dashboard .charts-container *,
+  .material-auszug-dashboard .details-table *,
+  .material-auszug-dashboard .list li {
+    font-size: 0.8rem;
+  }
+  
+  /* card title a bit larger */
+  .material-auszug-dashboard .dashboard-item-header h3 { font-size: 1rem; }
+  
+  /* remove universal shrink */
+  
+/* Universal text scale for the whole MaterialAuszug page */
+.material-auszug-dashboard,
+.material-auszug-dashboard * {
+  font-size: 0.7rem !important;   /* ← pick any size you like */
+  line-height: 1.25;
+}
+
+/* force smallest for file upload and selects */
+.material-auszug-dashboard .custom-file-input span.file-button,
+.material-auszug-dashboard select,
+.material-auszug-dashboard select option {
+  font-size: 0.5rem !important;
+}
+
+.material-auszug-dashboard .custom-file-input span.file-button {
+  font-size: 0.5rem !important;
+}
+
+.material-auszug-dashboard .custom-file-input span.file-text {
+  font-size: 0.4rem !important;
+}

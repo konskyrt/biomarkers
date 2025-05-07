@@ -481,6 +481,11 @@ export default function MaterialAuszug() {
     { i: 'details', x: 6, y: 8, w: 6, h: 6, static: true },
     { i: 'kpi-combined', x: 0, y: 14, w: 6, h: 6, static: true },
     { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true },
+
+    // Progress charts stacked below KPIs
+    { i: 'mat-progress', x: 0, y: 20, w: 12, h: 8, static: true },
+    { i: 'completion-progress', x: 0, y: 28, w: 12, h: 8, static: true },
+    { i: 'apartments-progress', x: 0, y: 36, w: 12, h: 8, static: true },
   ];
 
   return (
@@ -691,6 +696,26 @@ export default function MaterialAuszug() {
         <div key="kpi-xy">
           <div className="bg-white p-4 rounded-lg shadow h-full flex items-center justify-center text-sm text-gray-500">
             Weitere KPI Daten werden hier angezeigt.
+          </div>
+        </div>
+
+        {/* New cards with progress charts */}
+
+        <div key="mat-progress">
+          <div className="bg-white p-4 rounded-lg shadow h-full flex flex-col">
+            <ChartSection />
+          </div>
+        </div>
+
+        <div key="completion-progress">
+          <div className="bg-white p-4 rounded-lg shadow h-full flex flex-col">
+            <CompletionBalanceChart />
+          </div>
+        </div>
+
+        <div key="apartments-progress">
+          <div className="bg-white p-4 rounded-lg shadow h-full flex flex-col">
+            <ApartmentsOverTimeChart />
           </div>
         </div>
       </ReactGridLayout>
