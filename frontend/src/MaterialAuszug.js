@@ -8,6 +8,9 @@ import BauteileDashboard from './components/BauteileDashboard';
 import ChartSection from './components/ChartSection';
 import CompletionBalanceChart from './components/CompletionBalanceChart';
 import ApartmentsOverTimeChart from './components/ApartmentsOverTimeChart';
+import HonorarChart from './components/HonorarChart';
+import AusfuehrungsCosts from './components/AusfuehrungsCosts';
+import KpiXY from './components/KpiXY';
 import './MaterialAuszug.css';
 
 // Three.js imports
@@ -1049,11 +1052,12 @@ export default function MaterialAuszug() {
     { i: 'charts',   x: 6, y: 0, w: 6, h: 8, static: true },
     { i: 'lists',    x: 0, y: 8, w: 6, h: 6, static: true },
     { i: 'details',  x: 6, y: 8, w: 6, h: 6, static: true },
-    { i: 'kpi-combined', x: 0, y: 14, w: 6, h: 6, static: true },
-    { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true },
-    { i: 'progress-material',   x: 0, y: 20, w: 12, h: 8, static: true },
-    { i: 'progress-completion', x: 0, y: 28, w: 12, h: 8, static: true },
-    { i: 'progress-apartments', x: 0, y: 36, w: 12, h: 8, static: true }
+    { i: 'honorar', x: 0, y: 14, w: 6, h: 6, static: true },
+    { i: 'ausfuehrungs', x: 0, y: 20, w: 6, h: 8, static: true },
+    { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 14, static: true },
+    { i: 'progress-material',   x: 0, y: 28, w: 12, h: 8, static: true },
+    { i: 'progress-completion', x: 0, y: 36, w: 12, h: 8, static: true },
+    { i: 'progress-apartments', x: 0, y: 44, w: 12, h: 8, static: true }
   ];
 
   return (
@@ -1326,171 +1330,27 @@ export default function MaterialAuszug() {
           </DashboardItem>
         </div>
 
-        <div key="kpi-combined">
-          <DashboardItem title="">
-            <div className="two-columns">
-              <div className="column" style={{ position: 'relative', width: '100%' }}>
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  marginBottom: '10px'
-                }}>
-                  <h3 style={{ margin: 0 }}>KPI - Planungskosten</h3>
+        <div key="honorar">
+          <DashboardItem title="Plannungs Honorar">
+            <HonorarChart projectBudget={projectBudget} />
+          </DashboardItem>
                 </div>
-                <div className="kpi-content" style={{ height: 'calc(100% - 30px)', overflowY: 'auto' }}>
-                  {/* Project meta table */}
-                  <table style={{ width: '100%', marginBottom: '12px', fontSize: '0.9rem' }}>
-                    <tbody>
-                      {Object.entries(projectInfo).map(([key,val]) => (
-                        <tr key={key}>
-                          <td style={{ fontWeight: 'bold', padding: '4px 5px' }}>{key}</td>
-                          <td style={{ padding: '4px 5px' }}>{val}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {!costDetails ? (
-                    <p>Bitte einen Gewerk auswählen</p>
-                  ) : (
-                    <table className="details-table" style={{ width: '100%' }}>
-                      <thead>
-                        {gew !== 'Alle' && (
-                          <tr style={{ background: '#f5f5f5' }}>
-                            <th style={{ textAlign: 'left', padding: '5px' }}>Komponente</th>
-                            <th style={{ textAlign: 'left', padding: '5px' }}>Menge</th>
-                            <th style={{ textAlign: 'left', padding: '5px' }}>Stückpreis in CHF</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Kosten</th>
-                          </tr>
-                        )}
-                        {gew === 'Alle' && (
-                          <tr style={{ background: '#f5f5f5' }}>
-                            <th style={{ textAlign: 'left', padding: '5px' }}>Gewerk</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Kosten (Ist)</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Budget</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Abweichung</th>
-                            <th style={{ textAlign: 'right', padding: '5px' }}>Honorar %</th>
-                          </tr>
-                        )}
-                      </thead>
-                      <tbody>
-                        {costDetails.map((d, index) => {
-                          // Determine the color for this row (if it's a Gewerk in 'Alle' view)
-                          let rowColor = null;
-                          if (gew === 'Alle' && !d.isTotal) {
-                            const gewerkEntry = Object.entries(gewerkeMap).find(([code, name]) => 
-                              name === d.label || code === d.label
-                            );
-                            if (gewerkEntry) {
-                              rowColor = gewerkeColors[gewerkEntry[0]];
-                            }
-                          }
-                          
-                          // Calculate max value for 'Alle' view to determine bar width
-                          let maxValue = 0;
-                          let currentValue = 0;
-                          
-                          if (gew === 'Alle') {
-                            // Find maximum cost value (excluding total row)
-                            costDetails.forEach(item => {
-                              if (!item.isTotal && item.value) {
-                                const value = parseFloat(item.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));
-                                if (!isNaN(value) && value > maxValue) {
-                                  maxValue = value;
-                                }
-                              }
-                            });
-                            
-                            // Get current row value
-                            if (d.value) {
-                              currentValue = parseFloat(d.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, ''));
-                              if (isNaN(currentValue)) currentValue = 0;
-                            }
-                          }
-                          
-                          return (
-                            <tr key={d.label + index} style={{
-                              ...(d.isTotal || d.label === 'Gesamtkosten' ? 
-                                { fontWeight: 'bold', borderTop: '1px solid #ddd' } : {})
-                            }}>
-                              <td style={{ 
-                                padding: '8px 5px',
-                                fontWeight: gew === 'Alle' && !d.isTotal ? 'bold' : 'inherit',
-                                color: 'inherit' 
-                              }}>
-                                {d.isTotal ? 'Gesamt:' : d.label}
-                              </td>
-                              {gew !== 'Alle' ? (
-                                <>
-                                  <td style={{ padding: '5px' }}>{d.value || ''}</td>
-                                  <td style={{ padding: '5px' }}>{d.unitCost || ''}</td>
-                                  <td style={{ padding: '5px', textAlign:'right', fontWeight: d.isTotal ? 'bold':'normal' }}>
-                                    {d.totalCost}
-                                  </td>
-                                </>
-                              ) : (
-                                <>
-                                  {/* Ist-Kosten */}
-                                  <td style={{ padding: '8px 5px', textAlign: 'right', fontWeight: d.isTotal ? 'bold' : 'normal' }}>
-                                    {d.value}
-                                </td>
-                                  {/* Budget */}
-                                  <td style={{ padding: '8px 5px', textAlign: 'right' }}>
-                                    {d.isTotal ? `${Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0).toLocaleString('de-DE')} CHF` : (projectBudget[d.label] ? `${projectBudget[d.label].toLocaleString('de-DE')} CHF` : '-')}
-                                  </td>
-                                  {/* Difference */}
-                                  <td style={{ padding: '8px 5px', textAlign: 'right', color: (() => {
-                                      const rowBudget = d.isTotal ? Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0) : projectBudget[d.label];
-                                      if(!rowBudget) return 'inherit';
-                                      const ist = parseFloat(d.value.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));
-                                      const diff = ist - rowBudget;
-                                      return diff > 0 ? '#d32f2f' : diff < 0 ? '#388e3c' : 'inherit';
-                                  })(), fontWeight: d.isTotal ? 'bold' : 'normal' }}>
-                                    {(() => {
-                                      const rowBudget2 = d.isTotal ? Object.entries(projectBudget).filter(([k])=>k!=='Honorar').reduce((s,[,v])=>s+v,0) : projectBudget[d.label];
-                                      if(!rowBudget2) return d.isTotal ? '' : '-';
-                                      const ist = parseFloat(d.value.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));
-                                      const diff = ist - rowBudget2;
-                                      return `${diff>0?'+':''}${diff.toLocaleString('de-DE')} CHF`;
-                                    })()}
-                                  </td>
-                                  {/* Honorar percentage */}
-                                  <td style={{ padding: '8px 5px', textAlign: 'right' }}>
-                                    {(() => {
-                                      const honorar = projectBudget.Honorar || 0;
-                                      if (d.isTotal) {
-                                        // percentage against total budget of all gewerke
-                                        const totalBudget = Object.entries(projectBudget)
-                                          .filter(([key]) => key !== 'Honorar')
-                                          .reduce((sum,[,val])=>sum+val,0);
-                                        const pct = totalBudget ? (honorar / totalBudget * 100) : 0;
-                                        return `${pct.toFixed(1)} %`;
-                                      }
-                                      const budget = projectBudget[d.label];
-                                      if (!budget) return '-';
-                                      const pct = honorar / budget * 100;
-                                      return `${pct.toFixed(1)} %`;
-                                    })()}
-                                  </td>
-                                </>
-                              )}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              </div>
-            </div>
+
+        <div key="ausfuehrungs">
+          <DashboardItem title="Ausführungs Kosten">
+            <AusfuehrungsCosts 
+              projectBudget={projectBudget} 
+              costDetails={costDetails}
+              filtered={filtered}
+              gew={gew}
+              gewerkeMap={gewerkeMap}
+            />
           </DashboardItem>
         </div>
 
         <div key="kpi-xy">
           <DashboardItem title="KPI - XY">
-            <div className="kpi-content" style={{ padding: '15px', height: '100%' }}>
-              <p>Weitere KPI Daten werden hier angezeigt.</p>
-            </div>
+            <KpiXY />
           </DashboardItem>
         </div>
 

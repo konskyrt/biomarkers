@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>IFC Viewer</title></head>
+<body>
+  <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/web-ifc@0.0.46/web-ifc-api.js"></script>
+  <script src="https://unpkg.com/web-ifc-three@0.0.125/build/IFCLoader.js"></script>
+  <script>
+    // parse query parameters
+    const params    = new URLSearchParams(location.search);
+    const ifcFile   = params.get('ifc');
+    const mode      = params.get('mode');       // 'images' or 'types'
+    const focusType = params.get('type') || '';
+
+    async function init() {
+      // set up Three.js scene + camera + lights…
+      const scene    = new THREE.Scene();
+      const camera   = new THREE.PerspectiveCamera(75, 800/600, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(800, 600);
+      document.body.appendChild(renderer.domElement);
+
+      // load the IFC model
+      const loader = new IFCLoader();
+      await loader.ifcManager.setWasmPath('https://unpkg.com/web-ifc@0.0.46/');
+      const model = await loader.load(ifcFile);
+      scene.add(model);
+
+      if (mode === 'types') {
+        // collect all distinct IFC classes
+        const types = new Set();
+        model.children.forEach(el => {
+          if (el.userData.ifcType) types.add(el.userData.ifcType);
+        });
+        window._types = Array.from(types);
+      } else if (mode === 'images') {
+        // snapshot each matching element
+        window._images = model.children
+          .filter(el => el.userData.ifcType === focusType)
+          .map(el => {
+            const box = new THREE.Box3().setFromObject(el);
+            const center = box.getCenter(new THREE.Vector3());
+            camera.position.set(center.x + 5, center.y + 5, center.z + 5);
+            camera.lookAt(center);
+            renderer.render(scene, camera);
+            return {
+              elementId: el.userData.expressID,
+              type:      el.userData.ifcType,
+              imageData: renderer.domElement.toDataURL('image/png')
+            };
+          });
+      }
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

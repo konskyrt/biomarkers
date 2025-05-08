@@ -117,9 +117,9 @@ const ChartSection = () => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 mb-6 w-full" style={{ minHeight: '400px' }}>
+    <div className="bg-white shadow rounded-lg p-4 mb-6 w-full" style={{ minHeight: '400px', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <h5 className="mb-3">Zeitverlauf der Materialmenge pro Gewerk</h5>
-      <div style={{height:'100%', minHeight:'200px'}}>
+      <div style={{ flex: 1, minHeight: 0 }}>
         <Line data={chartData} options={options} />
       </div>
     </div>
