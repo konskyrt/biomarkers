@@ -19,12 +19,20 @@ import {
 // Register Chart.js components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+// Additional dashboard charts
+import ChartSection from './ChartSection';
+import CompletionBalanceChart from './CompletionBalanceChart';
+import ApartmentsOverTimeChart from './ApartmentsOverTimeChart';
+
 const ReactGridLayout = WidthProvider(RGL);
 
 // Map prefixes to display names
 const gewerkeMap = { SN: 'Sanitär', EL: 'Elektro', SPR: 'Sprinkler', HZ: 'Heizung', KT: 'Kälte', LF: 'Lüftung' };
 // Colors per Gewerk
 const gewerkeColors = { SN: '#2196F3', EL: '#FF9800', SPR: '#E91E63', HZ: '#F44336', KT: '#00BCD4', LF: '#4CAF50', Alle: '#757575' };
+
+// Honorar percentage (e.g. 15 % planning fee)
+const HONORAR_RATE = 0.15;
 
 // Define unit costs for different components by Gewerk
 const unitCostMap = {
@@ -375,6 +383,26 @@ export default function MaterialAuszug() {
     }
   }, [filtered, gew]);
 
+  // Pie data for Honorar vs. Projektkosten
+  const honorarPieData = useMemo(() => {
+    if (!costDetails) return null;
+    const totalRow = costDetails.find((r) => r.isTotal);
+    if (!totalRow) return null;
+    const totalStr = (totalRow.totalCost || totalRow.value || '').toString();
+    const totalNum = parseFloat(totalStr.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+    if (totalNum === 0) return null;
+    const honorar = totalNum * HONORAR_RATE;
+    return {
+      labels: ['Projektkosten', 'Honorar'],
+      datasets: [
+        {
+          data: [totalNum - honorar, honorar],
+          backgroundColor: ['#4CAF50', '#F59E0B'],
+        },
+      ],
+    };
+  }, [costDetails]);
+
   // Charts data
   const chartData = useMemo(() => {
     if (filtered.length === 0) return null;
@@ -479,8 +507,8 @@ export default function MaterialAuszug() {
     { i: 'charts', x: 2.5, y: 0, w: 9.5, h: 8, static: true },
     { i: 'lists', x: 0, y: 8, w: 6, h: 6, static: true },
     { i: 'details', x: 6, y: 8, w: 6, h: 6, static: true },
-    { i: 'kpi-combined', x: 0, y: 14, w: 6, h: 6, static: true },
-    { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true },
+    { i: 'kpi-combined', x: 0, y: 14, w: 8, h: 6, static: true },
+    { i: 'kpi-xy', x: 8, y: 14, w: 4, h: 6, static: true },
 
     // Progress charts stacked below KPIs
     { i: 'mat-progress', x: 0, y: 20, w: 12, h: 8, static: true },
@@ -650,45 +678,55 @@ export default function MaterialAuszug() {
         </div>
 
         <div key="kpi-combined">
-          {/* KPI – Planungskosten */}
-          <div className="bg-white p-4 rounded-lg shadow h-full overflow-auto">
-            <h3 className="font-medium mb-4">KPI – Planungskosten</h3>
-            {!costDetails ? (
-              <p className="text-sm text-gray-500">Bitte einen Gewerk auswählen</p>
-            ) : (
-              <table className="text-sm w-full">
-                <thead>
-                  {gew !== 'Alle' ? (
-                    <tr className="border-b bg-gray-50">
-                      <th className="py-1 text-left">Komponente</th>
-                      <th className="py-1 text-left">Menge</th>
-                      <th className="py-1 text-left">Stückpreis</th>
-                      <th className="py-1 text-right">Kosten</th>
-                    </tr>
-                  ) : (
-                    <tr className="border-b bg-gray-50">
-                      <th className="py-1 text-left">Gewerk</th>
-                      <th className="py-1 text-right">Kosten</th>
-                    </tr>
-                  )}
-                </thead>
-                <tbody>
-                  {costDetails.map((row) => (
-                    <tr key={row.label} className={row.isTotal ? 'font-semibold border-t' : ''}>
-                      <td className="py-1 pr-2">{row.label}</td>
-                      {gew !== 'Alle' ? (
-                        <>
-                          <td className="py-1">{row.value}</td>
-                          <td className="py-1">{row.unitCost}</td>
-                          <td className="py-1 text-right">{row.totalCost}</td>
-                        </>
-                      ) : (
-                        <td className="py-1 text-right">{row.value}</td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* KPI – Planungskosten mit Honorar-Pie */}
+          <div className="bg-white p-4 rounded-lg shadow h-full flex">
+            {/* Kosten-Tabelle */}
+            <div className="flex-1 overflow-auto">
+              <h3 className="font-medium mb-4">KPI – Planungskosten</h3>
+              {!costDetails ? (
+                <p className="text-sm text-gray-500">Bitte einen Gewerk auswählen</p>
+              ) : (
+                <table className="text-sm w-full">
+                  <thead>
+                    {gew !== 'Alle' ? (
+                      <tr className="border-b bg-gray-50">
+                        <th className="py-1 text-left">Komponente</th>
+                        <th className="py-1 text-left">Menge</th>
+                        <th className="py-1 text-left">Stückpreis</th>
+                        <th className="py-1 text-right">Kosten</th>
+                      </tr>
+                    ) : (
+                      <tr className="border-b bg-gray-50">
+                        <th className="py-1 text-left">Gewerk</th>
+                        <th className="py-1 text-right">Kosten</th>
+                      </tr>
+                    )}
+                  </thead>
+                  <tbody>
+                    {costDetails.map((row) => (
+                      <tr key={row.label} className={row.isTotal ? 'font-semibold border-t' : ''}>
+                        <td className="py-1 pr-2">{row.label}</td>
+                        {gew !== 'Alle' ? (
+                          <>
+                            <td className="py-1">{row.value}</td>
+                            <td className="py-1">{row.unitCost}</td>
+                            <td className="py-1 text-right">{row.totalCost}</td>
+                          </>
+                        ) : (
+                          <td className="py-1 text-right">{row.value}</td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Honorar Pie */}
+            {honorarPieData && (
+              <div className="w-64 flex items-center justify-center ml-4">
+                <Pie data={honorarPieData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+              </div>
             )}
           </div>
         </div>

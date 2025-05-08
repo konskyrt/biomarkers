@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BIMData IFC-Parsing Workflow Guide</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 0 1rem 3rem;
+      line-height: 1.6;
+      color: #333;
+      background: #fafafa;
+    }
+    header {
+      background: #0A7EC2;
+      color: #fff;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    h1 { margin: 0 0 .25rem; font-size: 2rem; }
+    h2 { color: #0A7EC2; margin-top: 2.5rem; }
+    code, pre {
+      background: #f4f4f4;
+      border: 1px solid #e1e1e1;
+      border-radius: 4px;
+      padding: .25rem .3rem;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .9rem;
+    }
+    pre { padding: 1rem; overflow-x: auto; }
+    a { color: #0A7EC2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ol { margin-left: 1.4rem; }
+    li { margin-bottom: .75rem; }
+    footer { margin-top: 3rem; text-align: center; font-size: .85rem; color: #666; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+    .button {
+      background: #0A7EC2;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .button:hover {
+      background: #0869a3;
+    }
+    .file-input {
+      margin: 1rem 0;
+    }
+    .status {
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    .status.success {
+      background: #e6ffe6;
+      border: 1px solid #00cc00;
+    }
+    .status.error {
+      background: #ffe6e6;
+      border: 1px solid #cc0000;
+    }
+    .status.info {
+      background: #e6f3ff;
+      border: 1px solid #0066cc;
+    }
+    #result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BIMData API – IFC&nbsp;Parsing Workflow</h1>
+    <p>From «zero» to «parsed elements» in three different ways</p>
+  </header>
+
+  <div class="container">
+    <main>
+      <section id="swagger" class="card">
+        <h2>1&nbsp;· Interactive testing with Swagger UI</h2>
+        <ol>
+          <li>Open the online documentation at <a href="https://api.bimdata.io/doc" target="_blank" rel="noopener">api.bimdata.io/doc</a> (or load the spec into your own Swagger-UI instance).</li>
+          <li>Click <strong>Authorize</strong> and paste your <code>ApiKey</code> or bearer token.</li>
+          <li>Expand <em>Folders &amp; Documents → Upload a document</em> and <strong>POST</strong> your <code>.ifc</code> file.</li>
+          <li>Call <code>GET /cloud/{cloud_pk}/project/{project_pk}/tree</code> to verify the upload reached the right folder.</li>
+          <li>Poll <code>GET /document/{document_id}</code> until <code>status</code> flips from <code>P</code> (Pending) to <code>C</code> (Completed).</li>
+          <li>Finally, under the <em>Viewer API</em> section, use <code>getRawElements(modelId)</code> to download the parsed geometry + metadata JSON.</li>
+        </ol>
+      </section>
+
+      <section id="postman" class="card">
+        <h2>2&nbsp;· Hands-on testing with Postman</h2>
+        <ol>
+          <li>In Postman choose <strong>File → Import</strong> and paste the Swagger URL <code>https://api.bimdata.io/doc</code>. A full collection is created.</li>
+          <li>Set environment variables:
+            <ul>
+              <li><code>{{host}}</code> = <code>https://api.bimdata.io</code></li>
+              <li><code>{{apiKey}}</code> = <em>your_API_key_here</em></li>
+            </ul>
+          </li>
+          <li>Run <em>documents → Upload document</em>: choose <em>form-data</em> → <strong>file</strong> and attach your <code>.ifc</code>.</li>
+          <li>In the <strong>Tests</strong> tab add a little polling script to wait for <code>status === "C"</code>.</li>
+          <li>When done, use <em>viewer → getRawElements</em> to grab the parsed elements.</li>
+        </ol>
+        <div class="file-input">
+          <a href="postman/bimdata-ifc-parser.json" class="button" download>Download Postman Collection</a>
+        </div>
+      </section>
+
+      <section id="python" class="card">
+        <h2>3&nbsp;· Automated smoke test via Python</h2>
+        <p>Install the official client:</p>
+        <pre><code>pip install bimdata-api-client</code></pre>
+        <p>Then run:</p>
+        <pre><code class="language-python">import time
+import bimdata_api_client
+from bimdata_api_client.api import documents_api, viewer_api
+
+config = bimdata_api_client.Configuration(host="https://api.bimdata.io")
+config.api_key['ApiKey'] = "YOUR_API_KEY"
+
+with bimdata_api_client.ApiClient(config) as client:
+    docs_api = documents_api.DocumentsApi(client)
+    view_api = viewer_api.ViewerApi(client)
+
+    # 1) Upload IFC
+    upload = docs_api.create_document(cloud_pk=1, project_pk=1,
+                                      file=('example.ifc', open('example.ifc', 'rb')))
+    doc_id = upload.id
+
+    # 2) Poll until processed
+    while docs_api.get_document(doc_id).status != 'C':
+        time.sleep(5)
+
+    # 3) Retrieve parsed elements
+    elements = view_api.get_raw_elements(model_id=upload.model.id)
+    print(f"Parsed {len(elements)} elements")</code></pre>
+        <p>Replace <code>cloud_pk</code>, <code>project_pk</code> and <code>YOUR_API_KEY</code> with real values. The script uploads the IFC, waits for processing and prints the number of parsed elements.</p>
+        
+        <div class="file-input">
+          <input type="file" id="ifcFile" accept=".ifc" />
+          <button class="button" onclick="processIFC()">Process IFC File</button>
+        </div>
+        <div id="status" class="status info" style="display: none;"></div>
+        <div id="result"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2024 – BIMData workflow quick-start guide</p>
+    </footer>
+  </div>
+
+  <script>
+    async function processIFC() {
+      const fileInput = document.getElementById('ifcFile');
+      const statusDiv = document.getElementById('status');
+      const resultDiv = document.getElementById('result');
+      
+      if (!fileInput.files.length) {
+        showStatus('Please select an IFC file first', 'error');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (!file.name.toLowerCase().endsWith('.ifc')) {
+        showStatus('Please select a valid IFC file', 'error');
+        return;
+      }
+
+      showStatus('Processing IFC file...', 'info');
+
+      try {
+        // In a real implementation, this would call your backend API
+        // For demo purposes, we'll simulate the process
+        await simulateProcessing();
+        
+        showStatus('IFC file processed successfully!', 'success');
+        showResult({
+          document_id: '12345',
+          model_id: '67890',
+          elements_count: 1500
+        });
+      } catch (error) {
+        showStatus('Error processing IFC file: ' + error.message, 'error');
+      }
+    }
+
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = 'status ' + type;
+      statusDiv.style.display = 'block';
+    }
+
+    function showResult(data) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <h3>Processing Results:</h3>
+        <p>Document ID: ${data.document_id}</p>
+        <p>Model ID: ${data.model_id}</p>
+        <p>Number of elements: ${data.elements_count}</p>
+      `;
+      resultDiv.style.display = 'block';
+    }
+
+    // Simulate processing delay
+    function simulateProcessing() {
+      return new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  </script>
+</body>
+</html> 

@@ -1,0 +1,185 @@
+{
+  "info": {
+    "name": "BIMData IFC Parser",
+    "description": "Collection for testing BIMData IFC parsing workflow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Access Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "{{client_id}}",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "{{client_secret}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://iam.bimdata.io/auth/realms/bimdata/protocol/openid-connect/token",
+          "protocol": "https",
+          "host": ["iam", "bimdata", "io"],
+          "path": ["auth", "realms", "bimdata", "protocol", "openid-connect", "token"]
+        }
+      }
+    },
+    {
+      "name": "Create Cloud",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"My First Cloud\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://api.bimdata.io/cloud",
+          "protocol": "https",
+          "host": ["api", "bimdata", "io"],
+          "path": ["cloud"]
+        }
+      }
+    },
+    {
+      "name": "Create Demo Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.bimdata.io/cloud/{{cloud_id}}/create-demo",
+          "protocol": "https",
+          "host": ["api", "bimdata", "io"],
+          "path": ["cloud", "{{cloud_id}}", "create-demo"]
+        }
+      }
+    },
+    {
+      "name": "Get IFC Models",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.bimdata.io/cloud/{{cloud_id}}/project/{{project_id}}/ifc",
+          "protocol": "https",
+          "host": ["api", "bimdata", "io"],
+          "path": ["cloud", "{{cloud_id}}", "project", "{{project_id}}", "ifc"]
+        }
+      }
+    },
+    {
+      "name": "Get Element Properties",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.bimdata.io/cloud/{{cloud_id}}/project/{{project_id}}/ifc/{{ifc_id}}/element/simple?type=IfcDoor",
+          "protocol": "https",
+          "host": ["api", "bimdata", "io"],
+          "path": ["cloud", "{{cloud_id}}", "project", "{{project_id}}", "ifc", "{{ifc_id}}", "element", "simple"],
+          "query": [
+            {
+              "key": "type",
+              "value": "IfcDoor"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "client_id",
+      "value": "your_client_id_here"
+    },
+    {
+      "key": "client_secret",
+      "value": "your_client_secret_here"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "cloud_id",
+      "value": ""
+    },
+    {
+      "key": "project_id",
+      "value": ""
+    },
+    {
+      "key": "ifc_id",
+      "value": ""
+    }
+  ]
+} 

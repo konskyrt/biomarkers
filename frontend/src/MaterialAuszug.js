@@ -4,8 +4,10 @@ import RGL, { WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import DashboardItem from './DashboardItem';
-import ProgressOverview from './components/ProgressOverview';
 import BauteileDashboard from './components/BauteileDashboard';
+import ChartSection from './components/ChartSection';
+import CompletionBalanceChart from './components/CompletionBalanceChart';
+import ApartmentsOverTimeChart from './components/ApartmentsOverTimeChart';
 import './MaterialAuszug.css';
 
 // Three.js imports
@@ -1049,7 +1051,9 @@ export default function MaterialAuszug() {
     { i: 'details',  x: 6, y: 8, w: 6, h: 6, static: true },
     { i: 'kpi-combined', x: 0, y: 14, w: 6, h: 6, static: true },
     { i: 'kpi-xy', x: 6, y: 14, w: 6, h: 6, static: true },
-    { i: 'progress', x: 0, y: 20, w: 12, h: 8, static: true }
+    { i: 'progress-material',   x: 0, y: 20, w: 12, h: 8, static: true },
+    { i: 'progress-completion', x: 0, y: 28, w: 12, h: 8, static: true },
+    { i: 'progress-apartments', x: 0, y: 36, w: 12, h: 8, static: true }
   ];
 
   return (
@@ -1490,9 +1494,21 @@ export default function MaterialAuszug() {
           </DashboardItem>
         </div>
 
-        <div key="progress">
-          <DashboardItem title="Fortschrittsübersicht">
-            <ProgressOverview />
+        <div key="progress-material">
+          <DashboardItem title="Material-Progression">
+            <ChartSection />
+          </DashboardItem>
+        </div>
+
+        <div key="progress-completion">
+          <DashboardItem title="Completion-Balance">
+            <CompletionBalanceChart />
+          </DashboardItem>
+        </div>
+
+        <div key="progress-apartments">
+          <DashboardItem title="Apartments-Over-Time">
+            <ApartmentsOverTimeChart />
           </DashboardItem>
         </div>
       </ReactGridLayout>
